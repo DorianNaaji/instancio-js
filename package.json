@@ -1,0 +1,57 @@
+{
+  "name": "instancio-js",
+  "version": "0.0.1",
+  "description": "A TypeScript library for generating random objects based on interfaces, inspired by Instancio",
+  "author": "Dorian Naaji",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doriannaaji/instancio-js"
+  },
+  "bugs": {
+    "url": "https://github.com/doriannaaji/instancio-js/issues"
+  },
+  "keywords": [
+    "random javascript object",
+    "random typescript object",
+    "generate javascript objects",
+    "generate typescript objects",
+    "instancio for javascript",
+    "instancio for typescript",
+    "javascript random object generator",
+    "typescript random object generator"
+  ],
+  "homepage": "https://github.com/doriannaaji/instancio-js#readme",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "ttsc -b",
+    "test": "vitest"
+  },
+  "files": [
+    "dist"
+  ],
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.2",
+    "eslint": "^8.55.0",
+    "prettier": "^3.0.3",
+    "ttypescript": "^1.5.15",
+    "typescript": "^4.9.5",
+    "vitest": "^3.0.8"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.14",
+    "tslib": "^2.8.1",
+    "typescript-rtti": "^0.9.6"
+  },
+  "devDependenciesComments": {
+    "@rollup/plugin-typescript": "Used for allowing vitest to build with custom typescript transformers.",
+    "vitest": "Test framework"
+  },
+  "dependenciesComments": {
+    "tslib": "required dependency for ",
+    "reflect-metadata": "Reflection lib which instancio-js relies on",
+    "typescript-rtti": "Reflection lib which instancio-js relies on"
+  }
+}
