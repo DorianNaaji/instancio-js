@@ -1,11 +1,12 @@
 import {
-  reflect,
   ReflectedClassRef,
   ReflectedInterfaceRef,
   ReflectedObjectMember,
   ReflectedProperty,
 } from "typescript-rtti";
 import { ReflectedTypeRef } from "typescript-rtti/src/lib/reflect";
+import { PrimitiveGenerator } from "./primitive-generator";
+import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from "./primitive-type.enum";
 
 export class InstancioApi<T> {
   private readonly typeRef: ReflectedTypeRef;
@@ -15,6 +16,15 @@ export class InstancioApi<T> {
   }
 
   public generate(): T {
+    // Handle primitive type (leaf)
+    if (this.isPrimitive()) {
+      // @ts-ignore
+      return new PrimitiveGenerator(
+        this.typeRef.class.name as PrimitiveTypeEnum,
+      ).generate();
+    }
+
+    // Else, keep handling complex properties (branches)
     if (this.typeRef.isInterface()) {
       const interfaceTypeRef: ReflectedInterfaceRef = this
         .typeRef as unknown as ReflectedInterfaceRef;
@@ -26,7 +36,7 @@ export class InstancioApi<T> {
         .typeRef as unknown as ReflectedClassRef<any>;
       return this.processProperties(classTypeRef.reflectedClass.properties);
     } else if (this.typeRef.kind === "object") {
-      // Handle Type kind
+      /* Handle Type kind */
       // @ts-ignore
       const props: ReflectedObjectMember[] = this.typeRef.members;
       return this.processReflectedObjectMembers(props);
@@ -37,13 +47,26 @@ export class InstancioApi<T> {
     }
   }
 
+  private isPrimitive(): boolean {
+    if (this.typeRef.isClass()) {
+      // @ts-ignore
+      return PRIMITIVE_TYPES.includes(this.typeRef.class.name);
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Process the properties from a type (using type
+   * @param props
+   * @private
+   */
   private processReflectedObjectMembers(props: ReflectedObjectMember[]): T {
     for (const prop of props) {
       if (prop.type.isUnion()) {
         // @ts-ignore
         console.log(`${prop.ref.n}:${prop.ref.t.t[1].name}`);
       } else {
-        // handle ReflectedObjectMember
         const propObj: ReflectedObjectMember = prop as ReflectedObjectMember;
         // TODO
         console.log(`${prop.name}:${prop.type}`);
@@ -52,13 +75,21 @@ export class InstancioApi<T> {
     return {} as T;
   }
 
-  private processProperties(props: ReflectedProperty[]): T {
+  /**
+   * Process the properties from an interface or an object
+   * @param props
+   * @private
+   */
+  private processProperties(props: ReflectedProperty[]) {
+    let result = {} as T;
     for (const prop of props) {
-      // TODO
-      console.log(`${prop.name}:${prop.type}`);
-      let i = prop.type;
-      reflect<typeof i>(); // ???
+      const api: InstancioApi<T> = new InstancioApi<T>(
+        prop.type as unknown as ReflectedTypeRef,
+      );
+      // @ts-ignore
+      result[prop.name] = api.generate();
+      console.log(prop.name);
     }
-    return {} as T;
+    return result;
   }
 }

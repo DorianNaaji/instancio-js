@@ -29,7 +29,6 @@
     "build": "ttsc -b",
     "test": "vitest",
     "prepare": "husky",
-    "eslint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "format": "prettier --write ."
   },
   "files": [
@@ -47,12 +46,6 @@
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.2",
-    "@typescript-eslint/eslint-plugin": "^8.26.0",
-    "@typescript-eslint/parser": "^8.26.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^10.1.1",
-    "eslint-plugin-prettier": "^5.2.3",
-    "eslint-plugin-unused-imports": "^4.1.4",
     "husky": "^9.1.7",
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.3",
@@ -70,7 +63,7 @@
     "vitest": "Test framework"
   },
   "dependenciesComments": {
-    "tslib": "required dependency for ",
+    "tslib": "required dependency for compiling the lib",
     "reflect-metadata": "Reflection lib which instancio-js relies on",
     "typescript-rtti": "Reflection lib which instancio-js relies on"
   }

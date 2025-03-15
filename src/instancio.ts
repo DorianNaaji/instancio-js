@@ -1,8 +1,9 @@
 import { CallSite, reflect } from "typescript-rtti";
 import { ReflectedTypeRef } from "typescript-rtti/src/lib/reflect";
 import { InstancioApi } from "./instancio-api";
+import "reflect-metadata";
 
-export class Instancio extends InstancioApi<any> {
+export class Instancio<T> extends InstancioApi<T> {
   private constructor() {
     super(null as unknown as ReflectedTypeRef);
   }
