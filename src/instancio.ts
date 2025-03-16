@@ -1,7 +1,7 @@
-import { CallSite, reflect } from "typescript-rtti";
-import { ReflectedTypeRef } from "typescript-rtti/src/lib/reflect";
-import { InstancioApi } from "./instancio-api";
-import "reflect-metadata";
+import { CallSite, reflect } from 'typescript-rtti';
+import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
+import { InstancioApi } from './instancio-api';
+import 'reflect-metadata';
 
 /**
  * The `Instancio` class is a static utility that provides the `of()` method to instantiate
@@ -34,16 +34,20 @@ export class Instancio<T> extends InstancioApi<T> {
    * **Note:** You should **not** provide an argument to `callSite`. The method extracts
    * the type automatically using reflection, which relies on the context provided by the caller.
    *
-   * @param doNotProvideMe DO NOT PROVIDE AN ARGUMENT FOR THIS : The `CallSite` argument is used internally by the method
+   * @param doNotProvideMe **DO NOT PROVIDE AN ARGUMENT FOR THIS** : The `CallSite` argument is used internally by the method
    * to extract the reflected type. Do not provide an argument when calling this method.
    * @returns An instance of `InstancioApi<T>` that reflects the provided type.
    *
    * @example const myType: MyType = Instancio.of<MyType>().generate();
    */
-  public static of<T>(doNotProvideMe?: CallSite): InstancioApi<T> {
+  public static of<T>(doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generateMany'> {
     const callSite = doNotProvideMe as CallSite;
     // @ts-ignore
     const typeRef: ReflectedTypeRef = reflect(callSite).typeParameters[0];
     return new InstancioApi(typeRef);
   }
+
+  // public static ofArray<T>(size: number): InstancioApi<T>
+  // public static ofSet<T>(size: number): InstancioApi<T>
+  // public static ofMap<T>(size: number): InstancioApi<T>
 }

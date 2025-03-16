@@ -1,9 +1,11 @@
 export enum PrimitiveTypeEnum {
-  String = "String",
-  Number = "Number", // TODO - feature: Generator has to handle decimal/hexadecimal/binaryh/octal
-  BigInt = "BigInt",
-  Boolean = "Boolean",
+  String = 'String',
+  Number = 'Number',
+  BigInt = 'BigInt',
+  Boolean = 'Boolean',
+  Date = 'Date',
+  // Particular case to document
+  DEFAULT = 'DEFAULT',
 }
 
-export const PRIMITIVE_TYPES: PrimitiveTypeEnum[] =
-  Object.values(PrimitiveTypeEnum);
+export const PRIMITIVE_TYPES: PrimitiveTypeEnum[] = Object.values(PrimitiveTypeEnum);

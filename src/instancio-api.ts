@@ -1,12 +1,19 @@
 import {
+  ReflectedClass,
   ReflectedClassRef,
   ReflectedInterfaceRef,
   ReflectedObjectMember,
   ReflectedProperty,
-} from "typescript-rtti";
-import { ReflectedTypeRef } from "typescript-rtti/src/lib/reflect";
-import { PrimitiveGenerator } from "./primitive-generator";
-import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from "./primitive-type.enum";
+} from 'typescript-rtti';
+import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
+import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
+import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
+import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
+import { RtType } from 'typescript-rtti/dist.esm/common';
+
+// TODO : Ideas for later
+//  https://www.instancio.org/user-guide/#using-oncomplete
+//  https://www.instancio.org/user-guide/#using-set
 
 /**
  * The `InstancioApi` class is responsible for generating instances of a given type `T`.
@@ -20,6 +27,13 @@ import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from "./primitive-type.enum";
  */
 export class InstancioApi<T> {
   private readonly typeRef: ReflectedTypeRef;
+  private primitiveGenerator: InstancioPrimitiveGenerator = new DefaultPrimitiveGenerator();
+  /**
+   * Indicates how many instances will be generated with the `generateMany()` method.
+   * Configured with `times`.
+   */
+  private count = 1;
+  private nbOfArrayElements = Math.random() * (5 - 2) + 2; // Two to five random elements by default
 
   /**
    * Protected constructor to initialize the `InstancioApi` with a type reference.
@@ -31,12 +45,76 @@ export class InstancioApi<T> {
     this.typeRef = typeRef;
   }
 
+  // TODO : DISABLED FOR V1 : WHEN USE CASES AND TESTS DONE FOR CUSTOM GENERATORS, THEN IT
+  //  CAN BE ENABLED
+  //  + PROVIDE DOCS AND EXAMPLES
+  /**
+   * Sets a custom primitive generator for generating primitive values.
+   *
+   * This method allows the user to replace the default `InstancioPrimitiveGenerator` with a custom generator
+   * that defines how primitive values (e.g., `string`, `boolean`, `number`, `BigInt`) should be generated.
+   * It is useful if a specific logic or configuration is required for generating primitive values
+   * (e.g., different formats, constraints, or external libraries).
+   *
+   * The custom generator should implement the `InstancioPrimitiveGenerator` interface,
+   * which provides the `generatePrimitive()` method to generate primitive values.
+   *
+   * @param generator The custom `InstancioPrimitiveGenerator` to be used for generating primitive values.
+   * @returns The current instance of the `InstancioApi`, allowing for method chaining.
+   */
+  // public withCustomGenerator(generator: InstancioPrimitiveGenerator): Omit<this, 'withCustomGenerator'> {
+  //   this.primitiveGenerator = generator;
+  //   return this;
+  // }
+
+  /**
+   * Customizes the number of elements generated inside nested array properties.
+   *
+   * This method allows you to control the number of elements that will be generated inside
+   * array properties of the generated type. By default, the size of arrays is determined
+   * automatically (random number generation between 2 & 5),
+   * but this method provides the option to specify a custom number of elements
+   * for arrays within nested properties.
+   *
+   * This can be useful when you want to control the size of arrays for testing or other purposes,
+   * ensuring that arrays are generated with a consistent number of elements.
+   *
+   * @param size The number of elements to generate inside arrays.
+   * @returns The current instance of the `InstancioApi`, allowing for method chaining.
+   */
+  public withElementsInArrays(size: number): Omit<this, 'withElementsInArrays'> {
+    this.nbOfArrayElements = size;
+    return this;
+  }
+
+  /**
+   * Sets the number of instances to generate.
+   *
+   * @param count Number of times to generate an instance.
+   * @returns The current instance of the `InstancioApi`, allowing method chaining.
+   */
+  public times(count: number): Omit<this, 'times' | 'generate'> {
+    this.count = count;
+    return this;
+  }
+
+  /**
+   * Generates multiple instances of type `T`.
+   * This method is available only after calling `times()`.
+   *
+   * @returns An array of `T` instances.
+   */
+  public generateMany(): T[] {
+    return Array.from({ length: this.count }, () => this.generate());
+  }
+
   /**
    * Main method to generate an instance of type `T`.
    * This method checks if the type is a primitive or complex,
    * and accordingly generates the appropriate instance.
    *
-   * - For primitive types, it delegates to `PrimitiveGenerator`.
+   * - For primitive types, it delegates to `DefaultPrimitiveGenerator`, unless a
+   * custom generator was added with the `withCustomGenerator` method.
    * - For interfaces, classes, and objects, it recursively processes their properties.
    *
    * **Primitive Types** handled by this method include:
@@ -52,32 +130,49 @@ export class InstancioApi<T> {
   public generate(): T {
     // Handle primitive type (leaf)
     if (this.isPrimitive()) {
-      return new PrimitiveGenerator(
-        // @ts-ignore
-        this.typeRef.class.name as PrimitiveTypeEnum,
-      ).generatePrimitive();
+      // @ts-ignore
+      return this.primitiveGenerator.generatePrimitive(this.typeRef.class.name as PrimitiveTypeEnum);
+      // @ts-ignore
+    } else if (this.typeRef.name === 'Object') {
+      console.warn('Unrecognized type/object: falling back to default generation');
+      return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT);
     }
 
     // Else, keep handling complex properties (branches)
     if (this.typeRef.isInterface()) {
-      const interfaceTypeRef: ReflectedInterfaceRef = this
-        .typeRef as unknown as ReflectedInterfaceRef;
-      return this.processProperties(
-        interfaceTypeRef.reflectedInterface.properties,
-      );
+      const interfaceTypeRef: ReflectedInterfaceRef = this.typeRef as unknown as ReflectedInterfaceRef;
+      return this.processProperties(interfaceTypeRef.reflectedInterface.properties);
     } else if (this.typeRef.isClass()) {
-      const classTypeRef: ReflectedClassRef<any> = this
-        .typeRef as unknown as ReflectedClassRef<any>;
+      // Some primitive types like 'symbol' cannot be recognized by InstancioApi and are
+      // processed as 'Object'.
+      // Other primitive types like 'object' could be anything so we use a DEFAULT type
+      // to handle generation for these particular scenarios.
+      // @ts-ignore
+      if (this.typeRef.class.name === 'Object') {
+        console.warn('Unrecognized type/object: falling back to default generation');
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT);
+      }
+      const classTypeRef: ReflectedClassRef<any> = this.typeRef as unknown as ReflectedClassRef<any>;
       return this.processProperties(classTypeRef.reflectedClass.properties);
-    } else if (this.typeRef.kind === "object") {
+    } else if (this.typeRef.kind === 'object') {
+      // TODO
       /* Handle Type kind */
       // @ts-ignore
       const props: ReflectedObjectMember[] = this.typeRef.members;
       return this.processReflectedObjectMembers(props);
+    } else if (this.typeRef.isUnion()) {
+      // TODO
+      throw new Error('[Union Type] Work in progress');
+    } else if (this.typeRef.isNull()) {
+      return null as T;
+    } else if (this.typeRef.isUndefined()) {
+      return undefined as T;
+    } else if (this.typeRef.isArray()) {
+      // @ts-ignore
+      const type = this.typeRef.elementType;
+      return new InstancioApi<T>(type as unknown as ReflectedTypeRef).times(this.nbOfArrayElements).generateMany() as T;
     } else {
-      throw new Error(
-        `cannot handle ${this.typeRef.kind}: Not implemented yet`,
-      );
+      throw new Error(`cannot handle typeRef.kind=[${this.typeRef.kind}] : Not implemented yet`);
     }
   }
 
@@ -122,9 +217,7 @@ export class InstancioApi<T> {
   private processProperties(props: ReflectedProperty[]) {
     let result = {} as T;
     for (const prop of props) {
-      const api: InstancioApi<T> = new InstancioApi<T>(
-        prop.type as unknown as ReflectedTypeRef,
-      );
+      const api: InstancioApi<T> = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef);
       // @ts-ignore
       result[prop.name] = api.generate();
     }
