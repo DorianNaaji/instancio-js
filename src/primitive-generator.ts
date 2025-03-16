@@ -1,5 +1,7 @@
 import { PrimitiveTypeEnum } from "./primitive-type.enum";
+import random from "random-string-generator";
 
+// TODO : Add the ability to pass a CustomGenerator to InstancioApi.generate()
 export class PrimitiveGenerator {
   private readonly typeName: string;
 
@@ -7,14 +9,18 @@ export class PrimitiveGenerator {
     this.typeName = typeName;
   }
 
-  public generate() {
+  public generatePrimitive(): any {
     switch (this.typeName) {
       case PrimitiveTypeEnum.String:
-        return "random";
+        return random(12, "upper");
       case PrimitiveTypeEnum.Boolean:
-        return false;
+        return Math.random() < 0.5;
       case PrimitiveTypeEnum.Number:
-        return 12345;
+        return Number.parseInt(random(6, "numeric"));
+      case PrimitiveTypeEnum.BigInt:
+        return BigInt(random(12, "numeric"));
+      default:
+        return undefined;
     }
   }
 }

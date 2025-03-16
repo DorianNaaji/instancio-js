@@ -1,7 +1,7 @@
 export enum PrimitiveTypeEnum {
   String = "String",
-  Number = "Number", // Generator has to handle decimal/hexadecimal/binaryh/octal
-  // public statc TYPE_BIGINT = 'Bigint'
+  Number = "Number", // TODO - feature: Generator has to handle decimal/hexadecimal/binaryh/octal
+  BigInt = "BigInt",
   Boolean = "Boolean",
 }
 
