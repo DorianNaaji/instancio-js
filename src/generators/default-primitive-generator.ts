@@ -8,14 +8,17 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
    * @protected
    * @see https://www.npmjs.com/package/random-string-generator
    */
-  private readonly random = random;
+  private static readonly random = random;
+
+  private static readonly defaultStringGenerator: Function = () => DefaultPrimitiveGenerator.random(12, 'upper');
   /**
    * Default generators, making use of the random library to generate
    * random values to populate primitive properties.
    * @private
    */
   private static readonly generators: ReadonlyMap<PrimitiveTypeEnum, Function> = new Map<PrimitiveTypeEnum, Function>()
-    .set(PrimitiveTypeEnum.String, () => random(12, 'upper'))
+    .set(PrimitiveTypeEnum.String, DefaultPrimitiveGenerator.defaultStringGenerator)
+    .set(PrimitiveTypeEnum.Symbol, () => Symbol(DefaultPrimitiveGenerator.defaultStringGenerator()))
     .set(PrimitiveTypeEnum.Number, () => Number.parseInt(random(6, 'numeric')))
     .set(PrimitiveTypeEnum.BigInt, () => BigInt(random(12, 'numeric')))
     .set(PrimitiveTypeEnum.Boolean, () => Math.random() < 0.5)
@@ -24,7 +27,7 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
       const end = new Date().getTime(); // Current date
       return new Date(start + Math.random() * (end - start));
     })
-    .set(PrimitiveTypeEnum.DEFAULT, () => random(12, 'upper'));
+    .set(PrimitiveTypeEnum.DEFAULT, DefaultPrimitiveGenerator.defaultStringGenerator);
 
   /**
    * Returns a new instance of the default generators map.

@@ -11,15 +11,84 @@ describe('Instancio Api generation tests', () => {
     const allTypesInOneInterface = Instancio.of<AllTypes>().generate();
 
     // Then
-    console.log('allTypesinOneInterface =', allTypesInOneInterface);
+    console.log('allTypesInOneInterface =', allTypesInOneInterface);
+    /* Primitive Types */
+    expect(typeof allTypesInOneInterface.string).toBe('string');
+    expect(typeof allTypesInOneInterface.bigint).toBe('bigint');
+    expect(typeof allTypesInOneInterface.number).toBe('number');
+    expect(allTypesInOneInterface.boolean).toBeOneOf([true, false]);
+    expect(typeof allTypesInOneInterface.boolean).toBe('boolean');
+    expect(typeof allTypesInOneInterface.symbol).toBe('string');
+    expect(typeof allTypesInOneInterface._symbol).toBe('string');
+    expect(typeof allTypesInOneInterface.__symbol).toBe('symbol');
+    expect(allTypesInOneInterface.null).toBeNull();
+    expect(allTypesInOneInterface.undefined).toBeUndefined();
+
+    /* Object & Array Types */
+    expect(typeof allTypesInOneInterface.object).toBe('string');
+    // Test default array size
+    expect(allTypesInOneInterface.stringArray?.length).toBeGreaterThanOrEqual(2);
+    expect(allTypesInOneInterface.stringArray?.length).toBeLessThanOrEqual(5);
+    for (const str of allTypesInOneInterface.stringArray) {
+      expect(typeof str).toBe('string');
+    }
+
+    for (const num of allTypesInOneInterface.numberArray) {
+      expect(typeof num).toBe('number');
+    }
+
+    for (const bool of allTypesInOneInterface.booleanArray) {
+      expect(typeof bool).toBe('boolean');
+    }
+
+    for (const obj of allTypesInOneInterface.objectArray) {
+      expect(typeof obj).toBe('string');
+    }
+
+    for (const clazz of allTypesInOneInterface.clazzArray) {
+      expect(typeof clazz.age).toBe('number');
+      expect(typeof clazz.name).toBe('string');
+    }
+  });
+
+  it(`Array generation (Clazz)`, () => {
+    // Given
+    const clazzArray: Clazz[] = Instancio.of<Clazz>().times(10).generateMany();
+
+    // Then
+    console.log(clazzArray);
+    expect(clazzArray).toHaveLength(10);
+    for (const clazz of clazzArray) {
+      expect(typeof clazz.age).toBe('number');
+      expect(typeof clazz.name).toBe('string');
+    }
+  });
+
+  it(`Interface generation (FewProps)`, () => {
+    // Given
+    const fewPropsArray: FewPropsInterface[] = Instancio.of<FewPropsInterface>().times(5).generateMany();
+
+    // then
+    console.log(fewPropsArray);
+    expect(fewPropsArray).toHaveLength(5);
+    for (const fewProps of fewPropsArray) {
+      expect(typeof fewProps.age).toBe('number');
+      expect(typeof fewProps.name).toBe('string');
+      expect(fewProps.birth).toBeInstanceOf(Date);
+    }
+  });
+
+  it(`Wip test`, () => {
+    // Given
+    const allTypesInOneInterface = Instancio.of<AllTypes>().generate();
+
+    // Then
+    console.log('allTypesInOneInterface =', allTypesInOneInterface);
     // expect(typeof allTypesInOneInterface.string).toBe('string');
-    // expect(typeof allTypesInOneInterface.bigint).toBe('bigint');
-    // expect(typeof allTypesInOneInterface.number).toBe('number');
-    // expect(allTypesInOneInterface.boolean).toBeOneOf([true, false]);
-    // expect(typeof allTypesInOneInterface.boolean).toBe('boolean');
   });
 
   it('Interfaces generation should fill all fields', () => {
+    // const
     // TODO
   });
 
@@ -28,7 +97,20 @@ describe('Instancio Api generation tests', () => {
   });
 
   it(`Type generation should fill all fields`, () => {
-    // TODO
+    // TODO : test with a type + processReflectedObjectMembers (23-03-2025)
+    const userType: UserType = Instancio.of<UserType>().generate();
+    expect(typeof userType.name).toBe('string');
+    expect(typeof userType.age).toBe('number');
+    expect(typeof userType.email).toBe('string');
+    expect(typeof userType.phone).toBe('string');
+    expect(typeof userType.address).toBe('string');
+    expect(typeof userType.country).toBe('string');
+    expect(typeof userType.city).toBe('string');
+    expect(typeof userType.zip).toBe('string');
+    const roomMate: RoomMate = userType.roomMate;
+    expect(typeof roomMate.name).toBe('string');
+    expect(typeof roomMate.age).toBe('number');
+    expect(typeof roomMate.email).toBe('string');
   });
 });
 
@@ -40,59 +122,55 @@ describe('Instancio Api generation tests', () => {
  * with the lib, this type is what should be looked after first to add
  * the handling of any new type.
  */
-// TODO THE NEXT TIME I WORK :
-//  Handle the symbol type, and all the other types one by one.
-//  Check how each type works, check inside 'instancio-api' how will the
-//  type be logged when processing the props, and handle it by adding
-//  a new primitive type enum and adding it to the PrimitiveGenerator
-//   + Complete the test for each new type
 interface AllTypes {
   /* Primitive Types */
-  // string?: string; // ✅
-  // bigint?: bigint; // ✅
-  // number?: number; // ✅
-  // boolean?: boolean; // ✅
-  // readonly _symbol: unique symbol; // Falls back to default generation // ✅
-  // readonly symbol: symbol; // Falls back to default generation // ✅
-  // null?: null; // ✅
-  // undefined?: undefined; // ✅
+  string: string;
+  bigint: bigint;
+  number: number;
+  boolean: boolean;
+  readonly symbol: symbol; // Falls back to default generation
+  readonly _symbol: unique symbol; // Falls back to default generation
+  readonly __symbol: Symbol;
+  null: null;
+  undefined: undefined;
   /* Object & Array Types */
-  // object?: object; // Falls back to default generation // ✅
-  // TODO
-  // stringArray?: string[]; // ✅
-  // numberArray?: number[]; // ✅
-  // booleanArray?: boolean[]; // ✅
-  // objectArray?: object[]; // ✅
-  // classArray?: Clazz[]; // ✅
-  // interfaceArray?: FewProps[]; // ✅
-  // typeArray?: Type[];
-  // tuple?: [number, string];
-  // objectType?: { red: any, green: any, blue: any };
+  object: object; // Falls back to default generation
+  stringArray: string[];
+  numberArray: number[];
+  booleanArray: boolean[];
+  objectArray: object[]; // Array items fall back to default generation
+  clazzArray: Clazz[];
+  interfaceArray: FewPropsInterface[];
+  // TODO 23/03/2025 Handle Type
+  // typeArray: CustomType[];
+  // tuple: [number, string];
+  // objectType: { red: any, green: any, blue: any };
   /* Enums */
-  // enumInt?: RGB_Int;
-  // enumStr?: RGB_Str;
-  // Union & Intersection Types
-  // unionStringArray?: string[] | string;
-  // union?: string | number;
-  // unionObj?: Clazz | FewProps;
-  // intersection?: FewProps & { extra: string };
+  // enumInt: RGB_Int;
+  // enumStr: RGB_Str;
+  /* Union & Intersection Types */
+  // unionStringArray: string[] | string;
+  // union: string | number;
+  // unionObj: Clazz | FewProps;
+  // intersection: FewProps & { extra: string };
   /* Utility Types */
-  // readonlyString?: Readonly<string>;
-  // requiredFewProps?: Required<FewProps>;
-  // partialFewProps?: Partial<FewProps>;
-  // pickFewProps?: Pick<FewProps, 'name' | 'age'>;
-  // omitFewProps?: Omit<FewProps, 'birth'>;
-  // record?: Record<string, number>;
-  // Special Types
-  // never?: never;
-  // void?: void;
-  // unknown?: unknown;
-  // any?: any;
+  // readonlyString: Readonly<string>;
+  // requiredFewProps: Required<FewProps>;
+  // partialFewProps: Partial<FewProps>;
+  // pickFewProps: Pick<FewProps, 'name' | 'age'>;
+  // omitFewProps: Omit<FewProps, 'birth'>;
+  // record: Record<string, number>;
+  /* Special Types */
+  // never: never;
+  // void: void;
+  // unknown: unknown;
+  // any: any;
   /* Function Types */
-  // functionType?: (param: string) => number;
-  // methodExample?: () => void;
-  // Mapped Types (Example)
-  // mappedType?: { [K in keyof FewProps]?: FewProps[K] };
+  // functionType: (param: string) => number;
+  // functionType_: Function;
+  // methodExample: () => void;
+  /* Mapped Types */
+  // mappedType: { [K in keyof FewProps]?: FewProps[K] };
 }
 
 export enum RGB_Int {
@@ -107,7 +185,7 @@ export enum RGB_Str {
   Blue = 'Blue',
 }
 
-export interface FewProps {
+export interface FewPropsInterface {
   name?: string;
   age?: number;
   birth?: Date;
@@ -118,26 +196,14 @@ export class Clazz {
   age?: number;
 }
 
-export type Type = {
+export type CustomType = {
   name?: string;
   age?: number;
 };
 
 /* interfaces */
 
-export type UserInterfaceAllOpt = {
-  name?: string;
-  age?: number;
-  email?: string;
-  phone?: string;
-  address?: string;
-  country?: string;
-  city?: string;
-  zip?: string;
-  roomMate?: RoomMate;
-};
-
-export type UserInterfaceAllRequired = {
+export type UserInterface = {
   name: string;
   age: number;
   email: string;
@@ -149,19 +215,7 @@ export type UserInterfaceAllRequired = {
   roomMate: RoomMate;
 };
 
-export type UserTypeAllOpt = {
-  name?: string;
-  age?: number;
-  email?: string;
-  phone?: string;
-  address?: string;
-  country?: string;
-  city?: string;
-  zip?: string;
-  roomMate?: RoomMate;
-};
-
-export type UserTypeAllRequired = {
+export type UserType = {
   name: string;
   age: number;
   email: string;

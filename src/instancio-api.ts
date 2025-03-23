@@ -1,15 +1,8 @@
-import {
-  ReflectedClass,
-  ReflectedClassRef,
-  ReflectedInterfaceRef,
-  ReflectedObjectMember,
-  ReflectedProperty,
-} from 'typescript-rtti';
+import { ReflectedClassRef, ReflectedInterfaceRef, ReflectedObjectMember, ReflectedProperty } from 'typescript-rtti';
 import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
 import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
-import { RtType } from 'typescript-rtti/dist.esm/common';
 
 // TODO : Ideas for later
 //  https://www.instancio.org/user-guide/#using-oncomplete
@@ -147,7 +140,13 @@ export class InstancioApi<T> {
       // processed as 'Object'.
       // Other primitive types like 'object' could be anything so we use a DEFAULT type
       // to handle generation for these particular scenarios.
-      // @ts-ignore
+
+      // When 'Symbol' type object is passed, use the primitive generator to generate a symbol.
+      if (this.typeRef.matchesValue(PrimitiveTypeEnum.Symbol.toLowerCase())) {
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Symbol);
+      }
+      // When we are not able at runtime to determine the underlying type and end up with a leaf being an 'object'
+      // we kind of have no other choice than to fallback to the default generation.
       if (this.typeRef.class.name === 'Object') {
         console.warn('Unrecognized type/object: falling back to default generation');
         return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT);
