@@ -29,22 +29,28 @@ describe('Instancio Api generation tests', () => {
     // Test default array size
     expect(allTypesInOneInterface.stringArray?.length).toBeGreaterThanOrEqual(2);
     expect(allTypesInOneInterface.stringArray?.length).toBeLessThanOrEqual(5);
+
+    expect(allTypesInOneInterface.stringArray).toBeInstanceOf(Array);
     for (const str of allTypesInOneInterface.stringArray) {
       expect(typeof str).toBe('string');
     }
 
+    expect(allTypesInOneInterface.numberArray).toBeInstanceOf(Array);
     for (const num of allTypesInOneInterface.numberArray) {
       expect(typeof num).toBe('number');
     }
 
+    expect(allTypesInOneInterface.booleanArray).toBeInstanceOf(Array);
     for (const bool of allTypesInOneInterface.booleanArray) {
       expect(typeof bool).toBe('boolean');
     }
 
+    expect(allTypesInOneInterface.objectArray).toBeInstanceOf(Array);
     for (const obj of allTypesInOneInterface.objectArray) {
       expect(typeof obj).toBe('string');
     }
 
+    expect(allTypesInOneInterface.clazzArray).toBeInstanceOf(Array);
     for (const clazz of allTypesInOneInterface.clazzArray) {
       expect(typeof clazz.age).toBe('number');
       expect(typeof clazz.name).toBe('string');
@@ -58,7 +64,22 @@ describe('Instancio Api generation tests', () => {
     // Then
     console.log(clazzArray);
     expect(clazzArray).toHaveLength(10);
+    expect(clazzArray).toBeInstanceOf(Array);
     for (const clazz of clazzArray) {
+      expect(typeof clazz.age).toBe('number');
+      expect(typeof clazz.name).toBe('string');
+    }
+  });
+
+  it(`Set generation (Clazz)`, () => {
+    // Given
+    const clazzSet: Set<Clazz> = Instancio.ofSet<Clazz>(10).generateSet();
+
+    // Then
+    console.log(clazzSet);
+    expect(clazzSet).toHaveLength(10);
+    expect(clazzSet).toBeInstanceOf(Set);
+    for (const clazz of clazzSet) {
       expect(typeof clazz.age).toBe('number');
       expect(typeof clazz.name).toBe('string');
     }
@@ -71,6 +92,7 @@ describe('Instancio Api generation tests', () => {
     // then
     console.log(fewPropsArray);
     expect(fewPropsArray).toHaveLength(5);
+    expect(fewPropsArray).toBeInstanceOf(Array);
     for (const fewProps of fewPropsArray) {
       expect(typeof fewProps.age).toBe('number');
       expect(typeof fewProps.name).toBe('string');
