@@ -26,14 +26,11 @@ export class Instancio<T> extends InstancioApi<T> {
 
   /**
    * The `of()` method is used to create an instance of the `InstancioApi` class.
-   * This method is the entry point for obtaining a type-reflected API instance
+   * This method is the entry point for obtaining a type-reflected Instancio API instance
    * for the given generic type `T`.
    *
    * The method uses the `CallSite` metadata to extract the type reference and
-   * initialize an `InstancioApi` instance that is tied to that type.
-   *
-   * **Note:** You should **not** provide an argument to `callSite`. The method extracts
-   * the type automatically using reflection, which relies on the context provided by the caller.
+   * initialize an `InstancioApi` instance that is tied to that type. **Do not provide this argument**
    *
    * @param doNotProvideMe **DO NOT PROVIDE AN ARGUMENT FOR THIS** : The `CallSite` argument is used internally by the method
    * to extract the reflected type. Do not provide an argument when calling this method.
@@ -48,6 +45,21 @@ export class Instancio<T> extends InstancioApi<T> {
     return new InstancioApi(typeRef);
   }
 
+  /**
+   * The `ofArray()` method is used to create an instance of the `InstancioApi` class.
+   * This method is the entry point for obtaining a type-reflected Instancio API instance
+   * for the given generic type `T`.
+   *
+   * The method uses the `CallSite` metadata to extract the type reference and
+   * initialize an `InstancioApi` instance that is tied to that type. **Do not provide this argument**
+   *
+   * @param size the size of the array that will be generated
+   * @param doNotProvideMe **DO NOT PROVIDE AN ARGUMENT FOR THIS** : The `CallSite` argument is used internally by the method
+   * to extract the reflected type. Do not provide an argument when calling this method.
+   * @returns An instance of `InstancioApi<T>` that reflects the provided type.
+   *
+   * @example const arr: MyType[] = Instancio.ofArray<MyType>(5).generateArray();
+   */
   public static ofArray<T>(size: number, doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generate' | 'generateSet'> {
     const callSite = doNotProvideMe as CallSite;
     // @ts-ignore
@@ -55,6 +67,21 @@ export class Instancio<T> extends InstancioApi<T> {
     return new InstancioApi(typeRef, size);
   }
 
+  /**
+   * The `ofSet()` method is used to create an instance of the `InstancioApi` class.
+   * This method is the entry point for obtaining a type-reflected Instancio API instance
+   * for the given generic type `T`.
+   *
+   * The method uses the `CallSite` metadata to extract the type reference and
+   * initialize an `InstancioApi` instance that is tied to that type. **Do not provide this argument**
+   *
+   * @param size the size of the set that will be generated
+   * @param doNotProvideMe **DO NOT PROVIDE AN ARGUMENT FOR THIS** : The `CallSite` argument is used internally by the method
+   * to extract the reflected type. Do not provide an argument when calling this method.
+   * @returns An instance of `InstancioApi<T>` that reflects the provided type.
+   *
+   * @example const arr: Set<MyType> = Instancio.ofSet<MyType>(5).generateSet();
+   */
   public static ofSet<T>(size: number, doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generate' | 'generateArray'> {
     const callSite = doNotProvideMe as CallSite;
     // @ts-ignore
