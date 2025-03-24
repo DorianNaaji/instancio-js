@@ -53,7 +53,7 @@ describe('Instancio Api generation tests', () => {
 
   it(`Array generation (Clazz)`, () => {
     // Given
-    const clazzArray: Clazz[] = Instancio.of<Clazz>().times(10).generateMany();
+    const clazzArray: Clazz[] = Instancio.ofArray<Clazz>(10).generateArray();
 
     // Then
     console.log(clazzArray);
@@ -66,7 +66,7 @@ describe('Instancio Api generation tests', () => {
 
   it(`Interface generation (FewProps)`, () => {
     // Given
-    const fewPropsArray: FewPropsInterface[] = Instancio.of<FewPropsInterface>().times(5).generateMany();
+    const fewPropsArray: FewPropsInterface[] = Instancio.ofArray<FewPropsInterface>(5).generateArray();
 
     // then
     console.log(fewPropsArray);
@@ -97,8 +97,8 @@ describe('Instancio Api generation tests', () => {
   });
 
   it(`Type generation should fill all fields`, () => {
-    // TODO : test with a type + processReflectedObjectMembers (23-03-2025)
     const userType: UserType = Instancio.of<UserType>().generate();
+    console.log(userType);
     expect(typeof userType.name).toBe('string');
     expect(typeof userType.age).toBe('number');
     expect(typeof userType.email).toBe('string');
@@ -141,7 +141,7 @@ interface AllTypes {
   objectArray: object[]; // Array items fall back to default generation
   clazzArray: Clazz[];
   interfaceArray: FewPropsInterface[];
-  // TODO 23/03/2025 Handle Type
+  // TODO 24/03/2025 Handle Type in golden test
   // typeArray: CustomType[];
   // tuple: [number, string];
   // objectType: { red: any, green: any, blue: any };

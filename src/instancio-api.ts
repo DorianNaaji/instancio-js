@@ -3,6 +3,7 @@ import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
 import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
+import { CollectionKind } from './collection-kind';
 
 // TODO : Ideas for later
 //  https://www.instancio.org/user-guide/#using-oncomplete
@@ -22,20 +23,21 @@ export class InstancioApi<T> {
   private readonly typeRef: ReflectedTypeRef;
   private primitiveGenerator: InstancioPrimitiveGenerator = new DefaultPrimitiveGenerator();
   /**
-   * Indicates how many instances will be generated with the `generateMany()` method.
-   * Configured with `times`.
+   * Indicates how many instances will be generated with the `generateArray()` or `generateSet` methods.
    */
-  private count = 1;
-  private nbOfArrayElements = Math.random() * (5 - 2) + 2; // Two to five random elements by default
+  private readonly rootCollectionSize: number;
+  private nestedCollectionsSize = Math.random() * (5 - 2) + 2; // Two to five random elements by default
 
   /**
    * Protected constructor to initialize the `InstancioApi` with a type reference.
    * This constructor is intended to be used internally by the `Instancio` class.
    *
    * @param typeRef The `ReflectedTypeRef` representing the type information of `T`.
+   * @param rootCollectionSize opt: root collection size in case of multiple obj. generation
    */
-  protected constructor(typeRef: ReflectedTypeRef) {
+  protected constructor(typeRef: ReflectedTypeRef, rootCollectionSize?: number) {
     this.typeRef = typeRef;
+    this.rootCollectionSize = rootCollectionSize ?? 0;
   }
 
   // TODO : DISABLED FOR V1 : WHEN USE CASES AND TESTS DONE FOR CUSTOM GENERATORS, THEN IT
@@ -64,41 +66,38 @@ export class InstancioApi<T> {
    * Customizes the number of elements generated inside nested array properties.
    *
    * This method allows you to control the number of elements that will be generated inside
-   * array properties of the generated type. By default, the size of arrays is determined
+   * array properties of the generated type. By default, the size of collections is determined
    * automatically (random number generation between 2 & 5),
    * but this method provides the option to specify a custom number of elements
-   * for arrays within nested properties.
+   * for collections within nested properties.
    *
-   * This can be useful when you want to control the size of arrays for testing or other purposes,
-   * ensuring that arrays are generated with a consistent number of elements.
+   * This can be useful when you want to control the size of collections for testing or other purposes,
+   * ensuring that collections are generated with a consistent number of elements.
    *
-   * @param size The number of elements to generate inside arrays.
+   * @param size The number of elements to generate inside collections.
    * @returns The current instance of the `InstancioApi`, allowing for method chaining.
    */
-  public withElementsInArrays(size: number): Omit<this, 'withElementsInArrays'> {
-    this.nbOfArrayElements = size;
-    return this;
-  }
-
-  /**
-   * Sets the number of instances to generate.
-   *
-   * @param count Number of times to generate an instance.
-   * @returns The current instance of the `InstancioApi`, allowing method chaining.
-   */
-  public times(count: number): Omit<this, 'times' | 'generate'> {
-    this.count = count;
+  public withNestedCollectionsOfSize(size: number): Omit<this, 'withNestedCollectionsOfSize'> {
+    this.nestedCollectionsSize = size;
     return this;
   }
 
   /**
    * Generates multiple instances of type `T`.
-   * This method is available only after calling `times()`.
    *
    * @returns An array of `T` instances.
    */
-  public generateMany(): T[] {
-    return Array.from({ length: this.count }, () => this.generate());
+  public generateArray(): T[] {
+    return Array.from({ length: this.rootCollectionSize }, () => this.generate());
+  }
+
+  /**
+   * Generates multiple instances of type `T`.
+   *
+   * @returns A Set of `T` instances.
+   */
+  public generateSet(): Set<T> {
+    return new Set(Array.from({ length: this.rootCollectionSize }, () => this.generate()));
   }
 
   /**
@@ -154,11 +153,10 @@ export class InstancioApi<T> {
       const classTypeRef: ReflectedClassRef<any> = this.typeRef as unknown as ReflectedClassRef<any>;
       return this.processProperties(classTypeRef.reflectedClass.properties);
     } else if (this.typeRef.kind === 'object') {
-      // TODO
-      /* Handle Type kind */
       // @ts-ignore
       const props: ReflectedObjectMember[] = this.typeRef.members;
-      return this.processReflectedObjectMembers(props);
+      // ReflectedObjectMember as enough overlap with ReflectedProperty to be used within 'processProperties'.
+      return this.processProperties(props as unknown as ReflectedProperty[]);
     } else if (this.typeRef.isUnion()) {
       // TODO
       throw new Error('[Union Type] Work in progress');
@@ -169,7 +167,7 @@ export class InstancioApi<T> {
     } else if (this.typeRef.isArray()) {
       // @ts-ignore
       const type = this.typeRef.elementType;
-      return new InstancioApi<T>(type as unknown as ReflectedTypeRef).times(this.nbOfArrayElements).generateMany() as T;
+      return new InstancioApi<T>(type as unknown as ReflectedTypeRef, this.nestedCollectionsSize).generateArray() as T;
     } else {
       throw new Error(`cannot handle typeRef.kind=[${this.typeRef.kind}] : Not implemented yet`);
     }
@@ -185,27 +183,6 @@ export class InstancioApi<T> {
   }
 
   /**
-   * Processes the properties of an object type, which can include properties of unions.
-   *
-   * @param props An array of reflected object members that belong to the type.
-   * @returns An empty object as a placeholder for the generated instance.
-   * @private
-   */
-  private processReflectedObjectMembers(props: ReflectedObjectMember[]): T {
-    for (const prop of props) {
-      if (prop.type.isUnion()) {
-        // @ts-ignore
-        console.log(`${prop.ref.n}:${prop.ref.t.t[1].name}`);
-      } else {
-        const propObj: ReflectedObjectMember = prop as ReflectedObjectMember;
-        // TODO
-        console.log(`${prop.name}:${prop.type}`);
-      }
-    }
-    return {} as T;
-  }
-
-  /**
    * Processes the properties of an interface or class.
    * It recursively calls the `InstancioApi.generate()` method for each property to generate its value.
    *
@@ -214,12 +191,12 @@ export class InstancioApi<T> {
    * @private
    */
   private processProperties(props: ReflectedProperty[]) {
-    let result = {} as T;
+    let result = {};
     for (const prop of props) {
       const api: InstancioApi<T> = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef);
       // @ts-ignore
       result[prop.name] = api.generate();
     }
-    return result;
+    return result as T;
   }
 }

@@ -2,6 +2,7 @@ import { CallSite, reflect } from 'typescript-rtti';
 import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { InstancioApi } from './instancio-api';
 import 'reflect-metadata';
+import { CollectionKind } from './collection-kind';
 
 /**
  * The `Instancio` class is a static utility that provides the `of()` method to instantiate
@@ -40,14 +41,24 @@ export class Instancio<T> extends InstancioApi<T> {
    *
    * @example const myType: MyType = Instancio.of<MyType>().generate();
    */
-  public static of<T>(doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generateMany'> {
+  public static of<T>(doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generateSet' | 'generateArray'> {
     const callSite = doNotProvideMe as CallSite;
     // @ts-ignore
     const typeRef: ReflectedTypeRef = reflect(callSite).typeParameters[0];
     return new InstancioApi(typeRef);
   }
 
-  // public static ofArray<T>(size: number): InstancioApi<T>
-  // public static ofSet<T>(size: number): InstancioApi<T>
-  // public static ofMap<T>(size: number): InstancioApi<T>
+  public static ofArray<T>(size: number, doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generate' | 'generateSet'> {
+    const callSite = doNotProvideMe as CallSite;
+    // @ts-ignore
+    const typeRef: ReflectedTypeRef = reflect(callSite).typeParameters[0];
+    return new InstancioApi(typeRef, size);
+  }
+
+  public static ofSet<T>(size: number, doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generate' | 'generateArray'> {
+    const callSite = doNotProvideMe as CallSite;
+    // @ts-ignore
+    const typeRef: ReflectedTypeRef = reflect(callSite).typeParameters[0];
+    return new InstancioApi(typeRef, size);
+  }
 }
