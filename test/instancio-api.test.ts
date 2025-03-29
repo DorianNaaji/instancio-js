@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Instancio } from '../src';
+import { a } from 'vitest/dist/chunks/suite.qtkXWc6R';
 
 /* TODO : execute n times to make sure randomness doesn't impact tests & to avoid flakky */
 // const EXECUTIONS = 100;
@@ -75,6 +76,11 @@ describe('Instancio Api generation tests', () => {
     expect(typeof allTypesInOneInterface.tuple[5].age).toBe('number');
     expect(typeof allTypesInOneInterface.tuple[5].name).toBe('string');
     expect(allTypesInOneInterface.tuple[5].birth).toBeInstanceOf(Date);
+
+    // objectType
+    expect(typeof allTypesInOneInterface.objectType.red).toBe('number');
+    expect(typeof allTypesInOneInterface.objectType.green).toBe('number');
+    expect(typeof allTypesInOneInterface.objectType.blue).toBe('number');
   });
 
   it(`Array generation (Clazz)`, () => {
@@ -185,12 +191,12 @@ interface AllTypes {
   interfaceArray: FewPropsInterface[];
   typeArray: CustomType[];
   tuple: [number, string, boolean, Symbol, Clazz, FewPropsInterface];
-  // TODO 24/03/2025 Handle ObjectType in golden test
-  // objectType: { red: any, green: any, blue: any };
+  objectType: { red: number; green: number; blue: number };
   /* Enums */
-  // enumInt: RGB_Int;
-  // enumStr: RGB_Str;
+  enumInt: RGB_Int;
+  enumStr: RGB_Str;
   /* Union & Intersection Types */
+  // TODO 29/03/2025 Handle Union type in golden test
   // unionStringArray: string[] | string;
   // union: string | number;
   // unionObj: Clazz | FewProps;

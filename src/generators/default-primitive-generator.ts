@@ -40,10 +40,13 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
    * The `generators` map contains generator functions for the following primitive types:
    *
    * - **String**: Generates a random uppercase string of length 12.
-   * - **Boolean**: Generates a random boolean value (`true` or `false`).
+   * - **Symbol**: Same than for String.
    * - **Number**: Generates a random integer value between 0 and 999999.
    * - **BigInt**: Generates a random BigInt value between 0 and 999999999999.
-   *
+   * - **Boolean**: Generates a random boolean value (`true` or `false`).
+   * - **Date**: Generates a random date between Jan 1 2000 and today.
+   * - **DEFAULT**: When an object is encountered and Instancio cannot process child properties,
+   * default behavior is applied (same than for string).
    * @returns {Map<PrimitiveTypeEnum, Function>} A shallow copy of the default generators map.
    * @see {@link https://www.npmjs.com/package/random-string-generator} for the `random-string-generator` library used in the generators.
    *

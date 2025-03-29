@@ -1,6 +1,8 @@
 import {
   ReflectedClassRef,
+  ReflectedEnumRef,
   ReflectedInterfaceRef,
+  ReflectedLiteralRef,
   ReflectedObjectMember,
   ReflectedProperty,
   ReflectedTupleElement,
@@ -126,9 +128,11 @@ export class InstancioApi<T> {
    * @throws Error if the type cannot be processed.
    *
    */
+  // TODO : Enhance readability + switch case
   public generate(): T {
     // Handle primitive type (leaf)
-    if (this.isPrimitive()) {
+    // @ts-ignore
+    if (this.typeRef.kind === 'class' && PRIMITIVE_TYPES.includes(this.typeRef.class.name)) {
       // @ts-ignore
       return this.primitiveGenerator.generatePrimitive(this.typeRef.class.name as PrimitiveTypeEnum);
       // @ts-ignore
@@ -138,21 +142,14 @@ export class InstancioApi<T> {
     }
 
     // Else, keep handling complex properties (branches)
-    if (this.typeRef.isInterface()) {
+    if (this.typeRef.kind === 'interface') {
       const interfaceTypeRef: ReflectedInterfaceRef = this.typeRef as unknown as ReflectedInterfaceRef;
       return this.processProperties(interfaceTypeRef.reflectedInterface.properties);
-    } else if (this.typeRef.isClass()) {
-      // Some primitive types like 'symbol' cannot be recognized by InstancioApi and are
-      // processed as 'Object'.
-      // Other primitive types like 'object' could be anything so we use a DEFAULT type
-      // to handle generation for these particular scenarios.
-
-      // When 'Symbol' type object is passed, use the primitive generator to generate a symbol.
-      if (this.typeRef.matchesValue(PrimitiveTypeEnum.Symbol.toLowerCase())) {
-        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Symbol);
-      }
-      // When we are not able at runtime to determine the underlying type and end up with a leaf being an 'object'
-      // we kind of have no other choice than to fallback to the default generation.
+    } else if (this.typeRef.kind === 'class') {
+      // When we are not able at runtime to determine the underlying type and end up with a branch being an 'object'
+      // we kind of have no other choice than to fallback to the default generation => creating a leaf
+      // This behavior can be customized with a customGenerator. overriding DEFAULT type.
+      // @ts-ignore
       if (this.typeRef.class.name === 'Object') {
         console.warn('Unrecognized type/object: falling back to default generation');
         return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT);
@@ -162,37 +159,32 @@ export class InstancioApi<T> {
     } else if (this.typeRef.kind === 'object') {
       // @ts-ignore
       const props: ReflectedObjectMember[] = this.typeRef.members;
-      // ReflectedObjectMember as enough overlap with ReflectedProperty to be used within 'processProperties'.
+      // ReflectedObjectMember has enough overlap with ReflectedProperty to be used within 'processProperties'.
       return this.processProperties(props as unknown as ReflectedProperty[]);
-    } else if (this.typeRef.isUnion()) {
+    } else if (this.typeRef.kind === 'enum') {
+      // For now, enum generation only consists in picking a random enum value
+      const enumRef: ReflectedEnumRef = this.typeRef as unknown as ReflectedEnumRef;
+      return enumRef.values[Math.floor(Math.random() * enumRef.values.length)].value as T;
+    } else if (this.typeRef.kind === 'union') {
       // TODO
       throw new Error('[Union Type] Work in progress');
     } else if (this.typeRef.isTuple()) {
-      console.log(this.typeRef);
       return this.processTuple() as T;
-    } else if (this.typeRef.isNull()) {
+    } else if (this.typeRef.kind === 'null') {
       return null as T;
-    } else if (this.typeRef.isUndefined()) {
+    } else if (this.typeRef.kind === 'undefined') {
       return undefined as T;
-    } else if (this.typeRef.isArray()) {
+    } else if (this.typeRef.kind === 'array') {
       // @ts-ignore
       const type = this.typeRef.elementType;
       return new InstancioApi<T>(type as unknown as ReflectedTypeRef, this.nestedCollectionsSize).generateArray() as T;
-    } else if (this.typeRef.isLiteral()) {
+    } else if (this.typeRef.kind === 'literal') {
       console.warn('Encountered literal type, returning the value as it is');
-      return this.typeRef.value;
+      const literalRef: ReflectedLiteralRef = this.typeRef as unknown as ReflectedLiteralRef;
+      return literalRef.value as T;
     } else {
       throw new Error(`Cannot handle typeRef.kind=[${this.typeRef.kind}] : Not implemented yet.
        If you think this is a mistake, please report an issue at (...)`);
-    }
-  }
-
-  private isPrimitive(): boolean {
-    if (this.typeRef.isClass()) {
-      // @ts-ignore
-      return PRIMITIVE_TYPES.includes(this.typeRef.class.name);
-    } else {
-      return false;
     }
   }
 
