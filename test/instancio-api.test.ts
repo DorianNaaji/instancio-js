@@ -54,7 +54,27 @@ describe('Instancio Api generation tests', () => {
     for (const clazz of allTypesInOneInterface.clazzArray) {
       expect(typeof clazz.age).toBe('number');
       expect(typeof clazz.name).toBe('string');
+      expect(clazz._age).toBe(1);
     }
+
+    expect(allTypesInOneInterface.typeArray).toBeInstanceOf(Array);
+    for (const type of allTypesInOneInterface.typeArray) {
+      expect(typeof type.age).toBe('number');
+      expect(typeof type.name).toBe('string');
+    }
+    // tuple: [number, string, boolean, Symbol, Clazz, FewPropsInterface];
+    expect(typeof allTypesInOneInterface.tuple[0]).toBe('number');
+    expect(typeof allTypesInOneInterface.tuple[1]).toBe('string');
+    expect(typeof allTypesInOneInterface.tuple[2]).toBe('boolean');
+    expect(typeof allTypesInOneInterface.tuple[3]).toBe('symbol');
+    // Clazz inside tuple
+    expect(typeof allTypesInOneInterface.tuple[4].age).toBe('number');
+    expect(typeof allTypesInOneInterface.tuple[4].name).toBe('string');
+    expect(allTypesInOneInterface.tuple[4]._age).toBe(1);
+    // FewPropsInterface inside tuple
+    expect(typeof allTypesInOneInterface.tuple[5].age).toBe('number');
+    expect(typeof allTypesInOneInterface.tuple[5].name).toBe('string');
+    expect(allTypesInOneInterface.tuple[5].birth).toBeInstanceOf(Date);
   });
 
   it(`Array generation (Clazz)`, () => {
@@ -163,9 +183,9 @@ interface AllTypes {
   objectArray: object[]; // Array items fall back to default generation
   clazzArray: Clazz[];
   interfaceArray: FewPropsInterface[];
-  // TODO 24/03/2025 Handle Type in golden test
-  // typeArray: CustomType[];
-  // tuple: [number, string];
+  typeArray: CustomType[];
+  tuple: [number, string, boolean, Symbol, Clazz, FewPropsInterface];
+  // TODO 24/03/2025 Handle ObjectType in golden test
   // objectType: { red: any, green: any, blue: any };
   /* Enums */
   // enumInt: RGB_Int;
@@ -208,19 +228,21 @@ export enum RGB_Str {
 }
 
 export interface FewPropsInterface {
-  name?: string;
-  age?: number;
-  birth?: Date;
+  name: string;
+  age: number;
+  birth: Date;
 }
 
 export class Clazz {
   name?: string;
   age?: number;
+  readonly _age = 1;
+  private test() {}
 }
 
 export type CustomType = {
-  name?: string;
-  age?: number;
+  name: string;
+  age: number;
 };
 
 /* interfaces */
@@ -250,7 +272,7 @@ export type UserType = {
 };
 
 export interface RoomMate {
-  name?: string;
-  age?: number;
-  email?: string;
+  name: string;
+  age: number;
+  email: string;
 }

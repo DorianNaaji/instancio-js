@@ -23,7 +23,7 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
     .set(PrimitiveTypeEnum.BigInt, () => BigInt(random(12, 'numeric')))
     .set(PrimitiveTypeEnum.Boolean, () => Math.random() < 0.5)
     .set(PrimitiveTypeEnum.Date, () => {
-      const start = new Date(2000, 0, 1).getTime(); // Start date (e.g., Jan 1, 2000)
+      const start = new Date(2000, 0, 1).getTime(); // Start date (Jan 1, 2000)
       const end = new Date().getTime(); // Current date
       return new Date(start + Math.random() * (end - start));
     })

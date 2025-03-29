@@ -1,4 +1,11 @@
-import { ReflectedClassRef, ReflectedInterfaceRef, ReflectedObjectMember, ReflectedProperty } from 'typescript-rtti';
+import {
+  ReflectedClassRef,
+  ReflectedInterfaceRef,
+  ReflectedObjectMember,
+  ReflectedProperty,
+  ReflectedTupleElement,
+  ReflectedTupleRef,
+} from 'typescript-rtti';
 import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
 import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
@@ -26,7 +33,7 @@ export class InstancioApi<T> {
    * Indicates how many instances will be generated with the `generateArray()` or `generateSet` methods.
    */
   private readonly rootCollectionSize: number;
-  private nestedCollectionsSize = Math.random() * (5 - 2) + 2; // Two to five random elements by default
+  private nestedCollectionsSize = Math.round(Math.random() * (5 - 2) + 2); // Two to five random elements by default
 
   /**
    * Protected constructor to initialize the `InstancioApi` with a type reference.
@@ -160,6 +167,9 @@ export class InstancioApi<T> {
     } else if (this.typeRef.isUnion()) {
       // TODO
       throw new Error('[Union Type] Work in progress');
+    } else if (this.typeRef.isTuple()) {
+      console.log(this.typeRef);
+      return this.processTuple() as T;
     } else if (this.typeRef.isNull()) {
       return null as T;
     } else if (this.typeRef.isUndefined()) {
@@ -168,8 +178,12 @@ export class InstancioApi<T> {
       // @ts-ignore
       const type = this.typeRef.elementType;
       return new InstancioApi<T>(type as unknown as ReflectedTypeRef, this.nestedCollectionsSize).generateArray() as T;
+    } else if (this.typeRef.isLiteral()) {
+      console.warn('Encountered literal type, returning the value as it is');
+      return this.typeRef.value;
     } else {
-      throw new Error(`cannot handle typeRef.kind=[${this.typeRef.kind}] : Not implemented yet`);
+      throw new Error(`Cannot handle typeRef.kind=[${this.typeRef.kind}] : Not implemented yet.
+       If you think this is a mistake, please report an issue at (...)`);
     }
   }
 
@@ -180,6 +194,15 @@ export class InstancioApi<T> {
     } else {
       return false;
     }
+  }
+
+  private processTuple(): [] {
+    const value = [];
+    const tupleRef: ReflectedTupleRef = this.typeRef as unknown as ReflectedTupleRef;
+    for (const el of tupleRef.elements) {
+      value.push(new InstancioApi(el.type as unknown as ReflectedTypeRef).generate());
+    }
+    return value as [];
   }
 
   /**
