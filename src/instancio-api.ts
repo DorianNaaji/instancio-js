@@ -7,6 +7,7 @@ import {
   ReflectedProperty,
   ReflectedTupleElement,
   ReflectedTupleRef,
+  ReflectedUnionRef,
 } from 'typescript-rtti';
 import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
@@ -166,9 +167,12 @@ export class InstancioApi<T> {
       const enumRef: ReflectedEnumRef = this.typeRef as unknown as ReflectedEnumRef;
       return enumRef.values[Math.floor(Math.random() * enumRef.values.length)].value as T;
     } else if (this.typeRef.kind === 'union') {
-      // TODO
-      throw new Error('[Union Type] Work in progress');
-    } else if (this.typeRef.isTuple()) {
+      const unionRef: ReflectedUnionRef = this.typeRef as unknown as ReflectedUnionRef;
+      // @ts-ignore
+      return new InstancioApi<T>(unionRef.types[Math.floor(Math.random() * unionRef.types.length)]).generate();
+    } else if (this.typeRef.kind === 'intersection') {
+      throw new Error('WIP');
+    } else if (this.typeRef.kind === 'tuple') {
       return this.processTuple() as T;
     } else if (this.typeRef.kind === 'null') {
       return null as T;
@@ -192,7 +196,7 @@ export class InstancioApi<T> {
     const value = [];
     const tupleRef: ReflectedTupleRef = this.typeRef as unknown as ReflectedTupleRef;
     for (const el of tupleRef.elements) {
-      value.push(new InstancioApi(el.type as unknown as ReflectedTypeRef).generate());
+      value.push(new InstancioApi<T>(el.type as unknown as ReflectedTypeRef).generate());
     }
     return value as [];
   }
@@ -208,9 +212,8 @@ export class InstancioApi<T> {
   private processProperties(props: ReflectedProperty[]) {
     let result = {};
     for (const prop of props) {
-      const api: InstancioApi<T> = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef);
       // @ts-ignore
-      result[prop.name] = api.generate();
+      result[prop.name] = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef).generate();
     }
     return result as T;
   }

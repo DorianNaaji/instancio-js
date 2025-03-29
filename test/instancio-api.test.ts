@@ -196,11 +196,11 @@ interface AllTypes {
   enumInt: RGB_Int;
   enumStr: RGB_Str;
   /* Union & Intersection Types */
-  // TODO 29/03/2025 Handle Union type in golden test
-  // unionStringArray: string[] | string;
-  // union: string | number;
-  // unionObj: Clazz | FewProps;
-  // intersection: FewProps & { extra: string };
+  // TODO Add test for Union
+  unionStringArray: string[] | string;
+  union: string | number;
+  unionObj: Clazz | FewPropsInterface;
+  intersection: FewPropsInterface & { extra: string };
   /* Utility Types */
   // readonlyString: Readonly<string>;
   // requiredFewProps: Required<FewProps>;
