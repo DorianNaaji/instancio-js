@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Instancio } from '../src';
-import { a } from 'vitest/dist/chunks/suite.qtkXWc6R';
-
-/* TODO : execute n times to make sure randomness doesn't impact tests & to avoid flakky */
-// const EXECUTIONS = 100;
+import { InstancioApi } from '../src/instancio-api';
 
 describe('Instancio Api generation tests', () => {
   // Golden test : test all the properties that can be handled.
@@ -81,6 +78,20 @@ describe('Instancio Api generation tests', () => {
     expect(typeof allTypesInOneInterface.objectType.red).toBe('number');
     expect(typeof allTypesInOneInterface.objectType.green).toBe('number');
     expect(typeof allTypesInOneInterface.objectType.blue).toBe('number');
+
+    // enumType
+    expect(typeof allTypesInOneInterface.enumStr).toBe('string');
+    expect(typeof allTypesInOneInterface.enumNum).toBe('number');
+
+    // Unions
+    expect(typeof allTypesInOneInterface.unionStringArray).toBeOneOf(['string', 'array']);
+    expect(typeof allTypesInOneInterface.union).toBeOneOf(['string', 'number']);
+
+    // TODO : Intersection
+    //  expect(typeof allTypesInOneInterface.intersection.extra).toBe('string');
+    //  expect(typeof allTypesInOneInterface.intersection.age).toBe('number');
+    //  expect(typeof allTypesInOneInterface.intersection.name).toBe('string');
+    //  expect(typeof allTypesInOneInterface.intersection.birth).toBeInstanceOf(Date);
   });
 
   it(`Array generation (Clazz)`, () => {
@@ -115,7 +126,7 @@ describe('Instancio Api generation tests', () => {
     // Given
     const fewPropsArray: FewPropsInterface[] = Instancio.ofArray<FewPropsInterface>(5).generateArray();
 
-    // then
+    // Then
     console.log(fewPropsArray);
     expect(fewPropsArray).toHaveLength(5);
     expect(fewPropsArray).toBeInstanceOf(Array);
@@ -126,22 +137,25 @@ describe('Instancio Api generation tests', () => {
     }
   });
 
-  it(`Wip test`, () => {
-    // Given
-    const allTypesInOneInterface = Instancio.of<AllTypes>().generate();
-
-    // Then
-    console.log('allTypesInOneInterface =', allTypesInOneInterface);
-    // expect(typeof allTypesInOneInterface.string).toBe('string');
-  });
-
   it('Interfaces generation should fill all fields', () => {
-    // const
-    // TODO
+    const user: UserInterface = Instancio.of<UserInterface>().generate();
+    expect(typeof user.name).toBe('string');
+    expect(typeof user.age).toBe('number');
+    expect(typeof user.email).toBe('string');
+    expect(typeof user.phone).toBe('string');
+    expect(typeof user.address).toBe('string');
+    expect(typeof user.country).toBe('string');
+    expect(typeof user.city).toBe('string');
+    expect(typeof user.zip).toBe('string');
+    expect(typeof user.roomMate.age).toBe('number');
+    expect(typeof user.roomMate.name).toBe('string');
+    expect(typeof user.roomMate.email).toBe('string');
   });
 
   it('Class generation should fill all fields', () => {
-    // TODO
+    const clazz: Clazz = Instancio.of<Clazz>().generate();
+    expect(typeof clazz.age).toBe('number');
+    expect(typeof clazz.name).toBe('string');
   });
 
   it(`Type generation should fill all fields`, () => {
@@ -193,14 +207,14 @@ interface AllTypes {
   tuple: [number, string, boolean, Symbol, Clazz, FewPropsInterface];
   objectType: { red: number; green: number; blue: number };
   /* Enums */
-  enumInt: RGB_Int;
+  enumNum: RGB_Numb;
   enumStr: RGB_Str;
   /* Union & Intersection Types */
-  // TODO Add test for Union
   unionStringArray: string[] | string;
   union: string | number;
   unionObj: Clazz | FewPropsInterface;
-  intersection: FewPropsInterface & { extra: string };
+  // TODO
+  // intersection: FewPropsInterface & { extra: string };
   /* Utility Types */
   // readonlyString: Readonly<string>;
   // requiredFewProps: Required<FewProps>;
@@ -212,7 +226,7 @@ interface AllTypes {
   // never: never;
   // void: void;
   // unknown: unknown;
-  // any: any;
+  any: any;
   /* Function Types */
   // functionType: (param: string) => number;
   // functionType_: Function;
@@ -221,7 +235,7 @@ interface AllTypes {
   // mappedType: { [K in keyof FewProps]?: FewProps[K] };
 }
 
-export enum RGB_Int {
+export enum RGB_Numb {
   Red,
   Green,
   Blue,

@@ -1,7 +1,7 @@
 {
   "name": "instancio-js",
-  "version": "0.0.1",
-  "description": "A TypeScript library for generating random objects based on interfaces, inspired by Instancio",
+  "version": "1.0.0",
+  "description": "Dynamically generate TypeScript/JavaScript objects for testing. Inspired by Instancio",
   "author": "Dorian Naaji",
   "license": "MIT",
   "repository": {

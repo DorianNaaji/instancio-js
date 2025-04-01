@@ -2,13 +2,17 @@ import { PrimitiveTypeEnum } from '../primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './instancio-primitive-generator';
 import random from 'random-string-generator';
 
+/**
+ * This class extends InstancioPrimitiveGenerator and provides default
+ * primitive value generators using the `random-string-generator` library.
+ */
 export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
   /**
    * random object from random-string-generator
    * @protected
    * @see https://www.npmjs.com/package/random-string-generator
    */
-  private static readonly random = random;
+  protected static readonly random = random;
 
   private static readonly defaultStringGenerator: Function = () => DefaultPrimitiveGenerator.random(12, 'upper');
   /**
@@ -27,6 +31,7 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
       const end = new Date().getTime(); // Current date
       return new Date(start + Math.random() * (end - start));
     })
+    .set(PrimitiveTypeEnum.Any, DefaultPrimitiveGenerator.defaultStringGenerator)
     .set(PrimitiveTypeEnum.DEFAULT, DefaultPrimitiveGenerator.defaultStringGenerator);
 
   /**
@@ -45,13 +50,14 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
    * - **BigInt**: Generates a random BigInt value between 0 and 999999999999.
    * - **Boolean**: Generates a random boolean value (`true` or `false`).
    * - **Date**: Generates a random date between Jan 1 2000 and today.
+   * - **Any** : falls back to default.
    * - **DEFAULT**: When an object is encountered and Instancio cannot process child properties,
    * default behavior is applied (same than for string).
    * @returns {Map<PrimitiveTypeEnum, Function>} A shallow copy of the default generators map.
-   * @see {@link https://www.npmjs.com/package/random-string-generator} for the `random-string-generator` library used in the generators.
-   *
+   * @see {@link https://www.npmjs.com/package/random-string-generator} for the `random-string-generator` library used in the generators.$
+   * @public
    */
-  public static getDefaultGenerators() {
+  public static getDefaultGenerators(): Map<PrimitiveTypeEnum, Function> {
     return new Map(DefaultPrimitiveGenerator.generators);
   }
 

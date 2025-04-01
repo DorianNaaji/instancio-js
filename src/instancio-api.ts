@@ -2,10 +2,10 @@ import {
   ReflectedClassRef,
   ReflectedEnumRef,
   ReflectedInterfaceRef,
+  ReflectedIntersectionRef,
   ReflectedLiteralRef,
   ReflectedObjectMember,
   ReflectedProperty,
-  ReflectedTupleElement,
   ReflectedTupleRef,
   ReflectedUnionRef,
 } from 'typescript-rtti';
@@ -13,7 +13,6 @@ import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
 import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
-import { CollectionKind } from './collection-kind';
 
 // TODO : Ideas for later
 //  https://www.instancio.org/user-guide/#using-oncomplete
@@ -50,9 +49,6 @@ export class InstancioApi<T> {
     this.rootCollectionSize = rootCollectionSize ?? 0;
   }
 
-  // TODO : DISABLED FOR V1 : WHEN USE CASES AND TESTS DONE FOR CUSTOM GENERATORS, THEN IT
-  //  CAN BE ENABLED
-  //  + PROVIDE DOCS AND EXAMPLES
   /**
    * Sets a custom primitive generator for generating primitive values.
    *
@@ -67,10 +63,10 @@ export class InstancioApi<T> {
    * @param generator The custom `InstancioPrimitiveGenerator` to be used for generating primitive values.
    * @returns The current instance of the `InstancioApi`, allowing for method chaining.
    */
-  // public withCustomGenerator(generator: InstancioPrimitiveGenerator): Omit<this, 'withCustomGenerator'> {
-  //   this.primitiveGenerator = generator;
-  //   return this;
-  // }
+  public withCustomGenerator(generator: InstancioPrimitiveGenerator): Omit<this, 'withCustomGenerator'> {
+    this.primitiveGenerator = generator;
+    return this;
+  }
 
   /**
    * Customizes the number of elements generated inside nested array properties.
@@ -169,19 +165,27 @@ export class InstancioApi<T> {
     } else if (this.typeRef.kind === 'union') {
       const unionRef: ReflectedUnionRef = this.typeRef as unknown as ReflectedUnionRef;
       // @ts-ignore
-      return new InstancioApi<T>(unionRef.types[Math.floor(Math.random() * unionRef.types.length)]).generate();
+      return new InstancioApi<T>(unionRef.types[Math.floor(Math.random() * unionRef.types.length)])
+        .withCustomGenerator(this.primitiveGenerator)
+        .generate();
     } else if (this.typeRef.kind === 'intersection') {
-      throw new Error('WIP');
+      // TODO
+      const intersectionRef: ReflectedIntersectionRef = this.typeRef as unknown as ReflectedIntersectionRef;
+      throw new Error('Intersection type is not handled yet. Submit a PR if you want to implement it!');
     } else if (this.typeRef.kind === 'tuple') {
       return this.processTuple() as T;
     } else if (this.typeRef.kind === 'null') {
       return null as T;
     } else if (this.typeRef.kind === 'undefined') {
       return undefined as T;
+    } else if (this.typeRef.kind === 'any') {
+      return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Any);
     } else if (this.typeRef.kind === 'array') {
       // @ts-ignore
       const type = this.typeRef.elementType;
-      return new InstancioApi<T>(type as unknown as ReflectedTypeRef, this.nestedCollectionsSize).generateArray() as T;
+      return new InstancioApi<T>(type as unknown as ReflectedTypeRef, this.nestedCollectionsSize)
+        .withCustomGenerator(this.primitiveGenerator)
+        .generateArray() as T;
     } else if (this.typeRef.kind === 'literal') {
       console.warn('Encountered literal type, returning the value as it is');
       const literalRef: ReflectedLiteralRef = this.typeRef as unknown as ReflectedLiteralRef;
@@ -213,7 +217,9 @@ export class InstancioApi<T> {
     let result = {};
     for (const prop of props) {
       // @ts-ignore
-      result[prop.name] = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef).generate();
+      result[prop.name] = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef)
+        .withCustomGenerator(this.primitiveGenerator)
+        .generate();
     }
     return result as T;
   }

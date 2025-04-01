@@ -2,7 +2,6 @@ import { CallSite, reflect } from 'typescript-rtti';
 import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { InstancioApi } from './instancio-api';
 import 'reflect-metadata';
-import { CollectionKind } from './collection-kind';
 
 /**
  * The `Instancio` class is a static utility that provides the `of()` method to instantiate
