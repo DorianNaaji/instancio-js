@@ -44,8 +44,8 @@ export class InstancioApi<T> {
    * @param typeRef The `ReflectedTypeRef` representing the type information of `T`.
    * @param rootCollectionSize opt: root collection size in case of multiple obj. generation
    */
-  protected constructor(typeRef: ReflectedTypeRef, rootCollectionSize?: number) {
-    this.typeRef = typeRef;
+  protected constructor(typeRef: any, rootCollectionSize?: number) {
+    this.typeRef = typeRef as ReflectedTypeRef;
     this.rootCollectionSize = rootCollectionSize ?? 0;
   }
 
@@ -196,13 +196,13 @@ export class InstancioApi<T> {
     }
   }
 
-  private processTuple(): [] {
+  private processTuple(): T {
     const value = [];
     const tupleRef: ReflectedTupleRef = this.typeRef as unknown as ReflectedTupleRef;
     for (const el of tupleRef.elements) {
       value.push(new InstancioApi<T>(el.type as unknown as ReflectedTypeRef).generate());
     }
-    return value as [];
+    return value as T;
   }
 
   /**

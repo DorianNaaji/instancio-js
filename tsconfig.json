@@ -1,15 +1,12 @@
 {
   "compilerOptions": {
-    "plugins": [
-      {
-        "transform": "typescript-rtti/dist/transformer"
-      }
-    ],
+    "plugins": [{ "transform": "typescript-rtti/dist/transformer" }],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM"],
     "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "strict": false,
     "strictPropertyInitialization": false,
     "strictNullChecks": false,
@@ -22,6 +19,6 @@
     "sourceMap": true,
     "importHelpers": false
   },
-  "include": ["src/index.ts"],
+  "include": ["src/index.ts", "test/**/*.test.ts"],
   "exclude": ["node_modules", "dist"]
 }
