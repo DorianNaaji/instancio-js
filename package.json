@@ -1,6 +1,6 @@
 {
   "name": "instancio-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Dynamically generate TypeScript/JavaScript objects for testing. Inspired by Instancio",
   "author": "Dorian Naaji",
   "license": "MIT",
