@@ -91,6 +91,32 @@ Repo contains examples:
 - rollup
 - babel
 
+## API Methods
+
+### `Instancio.of<T>()`
+
+Generates an object of the specified type `T`.
+
+```typescript
+const user: User = Instancio.of<User>().generate();
+```
+
+### `Instancio.ofArray<T>(size: number)`
+
+Generates an array of objects of the specified type `T`.
+
+```typescript
+const users: User[] = Instancio.ofArray<User>(5).generateArray();
+```
+
+### `Instancio.ofSet<T>(size: number)`
+
+Generates a set of objects of the specified type `T`.
+
+```typescript
+const userSet: Set<User> = Instancio.ofSet<User>(5).generateSet();
+```
+
 ## Usage
 
 ### Generating a Typed Object
@@ -98,7 +124,7 @@ Repo contains examples:
 You can generate a random object of a specific type based on a TypeScript interface or class.
 (see intro example)
 
-### Generating a Typed Array
+### Generating a Typed Array with a custom generator
 
 You can generate an array of random objects with a specified type.
 
@@ -276,35 +302,9 @@ export interface FewStringsProps {
 }
 ```
 
-## API Methods
-
-### `Instancio.of<T>()`
-
-Generates an object of the specified type `T`.
-
-```typescript
-const user: User = Instancio.of<User>().generate();
-```
-
-### `Instancio.ofArray<T>(size: number)`
-
-Generates an array of objects of the specified type `T`.
-
-```typescript
-const users: User[] = Instancio.ofArray<User>(5).generateArray();
-```
-
-### `Instancio.ofSet<T>(size: number)`
-
-Generates a set of objects of the specified type `T`.
-
-```typescript
-const userSet: Set<User> = Instancio.ofSet<User>(5).generateSet();
-```
-
 ## License
 
-Instancio-JS is distributed under the MIT license.
+instancio-js is distributed under the MIT license.
 
 ---
 
