@@ -1,6 +1,6 @@
-# Instancio-JS
+# instancio-js
 
-Instancio-JS is a library for dynamically and recursively generating
+instancio-js is a library for dynamically and recursively generating
 JavaScript/TypeScript objects from interfaces, similar
 to the functionality provided by [Instancio](https://github.com/instancio/instancio) in Java.
 It allows you to quickly create objects with random values for testing purposes.
@@ -28,13 +28,12 @@ console.log(user);
 
 **Output Example**:
 
-```json lines
+```
 {
   "name": "BZHWSMLUIWIQ", // Random uppercase string
   "age": 58753 // Random number
 }
-
-// generation can be customized
+// note: generation can be customized
 ```
 
 ## To come
@@ -43,13 +42,54 @@ console.log(user);
 - **Utility** types handling (`Pick`, `Omit`...)
 - **Special** type handling (`never`, `void`...)
 
-## Installation
+## Installation / Setup
 
 To install the library via npm:
 
 ```bash
 npm install instancio-js
 ```
+
+### Prerequisites
+
+- Typescript 4.8 - 5.1
+- Node.js v14 or newer (when using Node.js)
+  (see https://github.com/typescript-rtti/typescript-rtti)
+
+### setting up tsconfig.json
+
+DISCLAIMER: You must use a custom transformer in order to make the library work (see https://github.com/typescript-rtti/typescript-rtti).
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "typescript-rtti/dist/transformer"
+      }
+    ]
+  }
+}
+```
+
+### Examples
+
+Here are few examples with basic projects showcasing how to install the library : https://github.com/DorianNaaji/instancio-js-examples
+
+Repo contains examples:
+
+**for testing libs:**
+
+- vitest
+- jest
+- mocha
+- tape
+
+**for build libs:**
+
+- standard (ts-node)
+- rollup
+- babel
 
 ## Usage
 
@@ -131,7 +171,7 @@ console.log(userSet);
 
 **Output Example**:
 
-```json lines
+```
 // Set
 {
   { name: 'MGXIEYRLKAPG', age: 42 },

@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "plugins": [{ "transform": "typescript-rtti/dist/transformer" }],
+    "plugins": [
+      {
+        "transform": "typescript-rtti/dist/transformer"
+      }
+    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
