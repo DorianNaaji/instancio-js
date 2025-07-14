@@ -13,6 +13,7 @@ import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
 import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
+import { Type } from 'rttist';
 
 // TODO : Ideas for later
 //  https://www.instancio.org/user-guide/#using-oncomplete
@@ -29,7 +30,11 @@ import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-ge
  * more complex types.
  */
 export class InstancioApi<T> {
+  /**
+   * @deprecated
+   */
   private readonly typeRef: ReflectedTypeRef;
+  private readonly type: Type;
   private primitiveGenerator: InstancioPrimitiveGenerator = new DefaultPrimitiveGenerator();
   /**
    * Indicates how many instances will be generated with the `generateArray()` or `generateSet` methods.
@@ -43,9 +48,15 @@ export class InstancioApi<T> {
    *
    * @param typeRef The `ReflectedTypeRef` representing the type information of `T`.
    * @param rootCollectionSize opt: root collection size in case of multiple obj. generation
+   * @deprecated
    */
   protected constructor(typeRef: any, rootCollectionSize?: number) {
-    this.typeRef = typeRef as ReflectedTypeRef;
+    // TODO : WIP
+    if(typeRef instanceof Type) {
+      this.type = typeRef;
+    } else {
+      throw new Error('v2 wip');
+    }
     this.rootCollectionSize = rootCollectionSize ?? 0;
   }
 
@@ -106,6 +117,10 @@ export class InstancioApi<T> {
     return new Set(Array.from({ length: this.rootCollectionSize }, () => this.generate()));
   }
 
+  public generateV2(): T {
+    return {} as unknown as T;
+  }
+
   /**
    * Main method to generate an instance of type `T`.
    * This method checks if the type is a primitive or complex,
@@ -126,6 +141,8 @@ export class InstancioApi<T> {
    *
    */
   // TODO : Enhance readability + switch case
+  // TODO : Split into classes the main algorithm logic for readability/maintanability
+  //  => SymbolHandler.generate()
   public generate(): T {
     // Handle primitive type (leaf)
     // @ts-ignore
@@ -170,7 +187,7 @@ export class InstancioApi<T> {
         .generate();
     } else if (this.typeRef.kind === 'intersection') {
       // TODO
-      const intersectionRef: ReflectedIntersectionRef = this.typeRef as unknown as ReflectedIntersectionRef;
+      // const intersectionRef: ReflectedIntersectionRef = this.typeRef as unknown as ReflectedIntersectionRef;
       throw new Error('Intersection type is not handled yet. Submit a PR if you want to implement it!');
     } else if (this.typeRef.kind === 'tuple') {
       return this.processTuple() as T;

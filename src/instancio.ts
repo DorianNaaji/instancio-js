@@ -1,6 +1,7 @@
 import { CallSite, reflect } from 'typescript-rtti';
 import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { InstancioApi } from './instancio-api';
+import { Type } from 'rttist';
 export interface User {
   age: number;
   name: string;
@@ -31,20 +32,13 @@ export class Instancio<T> extends InstancioApi<T> {
    * This method is the entry point for obtaining a type-reflected Instancio API instance
    * for the given generic type `T`.
    *
-   * The method uses the `CallSite` metadata to extract the type reference and
-   * initialize an `InstancioApi` instance that is tied to that type. **Do not provide this argument**
-   *
-   * @param doNotProvideMe **DO NOT PROVIDE AN ARGUMENT FOR THIS** : The `CallSite` argument is used internally by the method
-   * to extract the reflected type. Do not provide an argument when calling this method.
+   * @param type
    * @returns An instance of `InstancioApi<T>` that reflects the provided type.
    *
    * @example const myType: MyType = Instancio.of<MyType>().generate();
    */
-  public static of<T>(doNotProvideMe?: CallSite): Omit<InstancioApi<T>, 'generateSet' | 'generateArray'> {
-    const callSite = doNotProvideMe as CallSite;
-    // @ts-ignore
-    const typeRef: ReflectedTypeRef = reflect(callSite).typeParameters[0];
-    return new InstancioApi(typeRef);
+  public static of<T>(type: Type): Omit<InstancioApi<T>, 'generateSet' | 'generateArray'> {
+    return new InstancioApi(type);
   }
 
   /**

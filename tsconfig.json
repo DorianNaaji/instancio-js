@@ -1,27 +1,16 @@
 {
   "compilerOptions": {
-    "plugins": [
-      {
-        "transform": "typescript-rtti/dist/transformer"
-      }
-    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
     "lib": ["ESNext", "DOM"],
+    "rootDir": "./src",
+    "outDir": "./dist",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "strict": false,
-    "strictPropertyInitialization": false,
-    "strictNullChecks": false,
     "esModuleInterop": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "importHelpers": false
   },
   "include": ["src/index.ts", "test/**/*.test.ts"],
   "exclude": ["node_modules", "dist"]
