@@ -152,7 +152,10 @@ export class InstancioApi<T> {
       case 'union':
         if (this.schema.types && this.schema.types.length > 0) {
           const randomIndex = Math.floor(Math.random() * this.schema.types.length);
-          return new InstancioApi<T>(this.schema.types[randomIndex]).withCustomGenerator(this.primitiveGenerator).generate();
+          return new InstancioApi<T>(this.schema.types[randomIndex])
+            .withCustomGenerator(this.primitiveGenerator)
+            .withNestedCollectionsOfSize(this.nestedCollectionsSize)
+            .generate();
         }
         return undefined as T;
       case 'object':
@@ -167,7 +170,12 @@ export class InstancioApi<T> {
     const value = [];
     if (this.schema.elements) {
       for (const el of this.schema.elements) {
-        value.push(new InstancioApi<T>(el).withCustomGenerator(this.primitiveGenerator).generate());
+        value.push(
+          new InstancioApi<T>(el)
+            .withCustomGenerator(this.primitiveGenerator)
+            .withNestedCollectionsOfSize(this.nestedCollectionsSize)
+            .generate(),
+        );
       }
     }
     return value as unknown as T;
@@ -184,7 +192,10 @@ export class InstancioApi<T> {
   private processProperties(props: PropertySchema[]) {
     let result: any = {};
     for (const prop of props) {
-      result[prop.name] = new InstancioApi<T>(prop.schema).withCustomGenerator(this.primitiveGenerator).generate();
+      result[prop.name] = new InstancioApi<T>(prop.schema)
+        .withCustomGenerator(this.primitiveGenerator)
+        .withNestedCollectionsOfSize(this.nestedCollectionsSize)
+        .generate();
     }
     return result as T;
   }
