@@ -117,6 +117,45 @@ Generates a set of objects of the specified type `T`.
 const userSet: Set<User> = Instancio.ofSet<User>(5).generateSet();
 ```
 
+### `.set(field, value)`
+
+Fixes a specific field to the given value; all other fields are still randomly generated.
+
+```typescript
+const user: User = Instancio.of<User>().set('email', 'test@example.com').generate();
+// user.email === 'test@example.com'
+```
+
+### `.supply(field, supplier)`
+
+Uses a supplier function to generate the value for a specific field, called once per generated object.
+
+```typescript
+const user: User = Instancio.of<User>()
+  .supply('age', () => Math.floor(Math.random() * 18) + 18)
+  .generate();
+// user.age is always between 18 and 35
+```
+
+### `.ignore(field)`
+
+Excludes a field from generation; the property will be absent (`undefined`) in the generated object.
+
+```typescript
+const user: User = Instancio.of<User>().ignore('password').generate();
+// user.password === undefined
+```
+
+These three methods are chainable and can be combined freely:
+
+```typescript
+const user: User = Instancio.of<User>()
+  .set('name', 'Alice')
+  .supply('age', () => 30)
+  .ignore('password')
+  .generate();
+```
+
 ## Usage
 
 ### Generating a Typed Object
@@ -155,36 +194,27 @@ console.log(users);
 ];
 ```
 
-### Developer note
+### Combining field-level customization with a custom generator
 
-Instancio-js being pre-release, there is no build in method to do
-custom generation based on property name yet, bet if you need to do so,
-you could do for instance:
+`set()`, `supply()`, and `ignore()` can be combined with `withCustomGenerator()` for fine-grained control:
 
 ```typescript
-for (const user of users) {
-  // @ts-ignore
-  user.email = user.name.toLowerCase() + '@gmail.com';
-}
-console.log(users);
+const users: User[] = Instancio.ofArray<User>(5)
+  .withCustomGenerator(new CustomUserGenerator())
+  .set('role', 'admin')
+  .supply('email', () => `user-${Date.now()}@example.com`)
+  .ignore('password')
+  .generateArray();
 ```
 
-Similarly, you could do even more generation for nested keys with other generators...
-It depends how much you need your data to be relevant.
+**Output Example**:
 
-Output
-
-```json lines
+```json
 [
-  { "name": "David", "age": 14, "email": "david@gmail.com" },
-  { "name": "David", "age": 16, "email": "david@gmail.com" },
-  { "name": "Eve", "age": 37, "email": "eve@gmail.com" },
-  { "name": "David", "age": 55, "email": "david@gmail.com" },
-  { "name": "Eve", "age": 76, "email": "eve@gmail.com" }
+  { "name": "Alice", "age": 75, "role": "admin", "email": "user-1234567890@example.com" },
+  { "name": "Bob", "age": 42, "role": "admin", "email": "user-1234567891@example.com" }
 ]
 ```
-
-Be creative 🚀
 
 ### Generating a Typed Set
 

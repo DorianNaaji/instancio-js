@@ -1,7 +1,7 @@
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
 import { PrimitiveTypeEnum } from './primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
-import { PropertySchema, TypeSchema } from './schema';
+import { FieldOverride, PropertySchema, TypeSchema } from './schema';
 
 /**
  * The `InstancioApi` class is responsible for generating instances of a given type `T`.
@@ -21,6 +21,7 @@ export class InstancioApi<T> {
    */
   private readonly rootCollectionSize: number;
   private nestedCollectionsSize = Math.round(Math.random() * (5 - 2) + 2); // Two to five random elements by default
+  private readonly fieldOverrides: Map<string, FieldOverride> = new Map();
 
   /**
    * Protected constructor to initialize the `InstancioApi` with a type schema.
@@ -70,6 +71,55 @@ export class InstancioApi<T> {
    */
   public withNestedCollectionsOfSize(size: number): Omit<this, 'withNestedCollectionsOfSize'> {
     this.nestedCollectionsSize = size;
+    return this;
+  }
+
+  /**
+   * Sets a fixed value for the given field, overriding random generation.
+   *
+   * @param field The name of the property to override.
+   * @param value The value to assign to that property.
+   * @returns The current instance of the `InstancioApi`, allowing for method chaining.
+   *
+   * @example
+   * const user = Instancio.of<User>().set('email', 'test@example.com').generate();
+   * // user.email === 'test@example.com', all other fields are randomly generated
+   */
+  public set<K extends keyof T>(field: K, value: T[K]): this {
+    this.fieldOverrides.set(field as string, { kind: 'set', value });
+    return this;
+  }
+
+  /**
+   * Uses a supplier function to generate the value for the given field.
+   *
+   * @param field The name of the property to override.
+   * @param supplier A function returning the value to assign to that property.
+   * @returns The current instance of the `InstancioApi`, allowing for method chaining.
+   *
+   * @example
+   * const user = Instancio.of<User>()
+   *   .supply('age', () => Math.floor(Math.random() * 18) + 18)
+   *   .generate();
+   * // user.age is always between 18 and 35
+   */
+  public supply<K extends keyof T>(field: K, supplier: () => T[K]): this {
+    this.fieldOverrides.set(field as string, { kind: 'supply', supplier });
+    return this;
+  }
+
+  /**
+   * Ignores the given field: it will be absent from the generated object.
+   *
+   * @param field The name of the property to ignore.
+   * @returns The current instance of the `InstancioApi`, allowing for method chaining.
+   *
+   * @example
+   * const user = Instancio.of<User>().ignore('password').generate();
+   * // user.password is undefined
+   */
+  public ignore<K extends keyof T>(field: K): this {
+    this.fieldOverrides.set(field as string, { kind: 'ignore' });
     return this;
   }
 
@@ -192,6 +242,18 @@ export class InstancioApi<T> {
   private processProperties(props: PropertySchema[]) {
     let result: any = {};
     for (const prop of props) {
+      const override = this.fieldOverrides.get(prop.name);
+      if (override) {
+        if (override.kind === 'ignore') continue;
+        if (override.kind === 'set') {
+          result[prop.name] = override.value;
+          continue;
+        }
+        if (override.kind === 'supply') {
+          result[prop.name] = override.supplier();
+          continue;
+        }
+      }
       result[prop.name] = new InstancioApi<T>(prop.schema)
         .withCustomGenerator(this.primitiveGenerator)
         .withNestedCollectionsOfSize(this.nestedCollectionsSize)

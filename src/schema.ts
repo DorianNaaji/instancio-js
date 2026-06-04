@@ -37,3 +37,8 @@ export interface EnumValueSchema {
   name: string;
   value: any;
 }
+
+export type FieldOverride<T = unknown> =
+  | { kind: 'set'; value: T }
+  | { kind: 'supply'; supplier: () => T }
+  | { kind: 'ignore' };

@@ -158,6 +158,60 @@ describe('Instancio Api generation tests', () => {
     expect(typeof clazz.name).toBe('string');
   });
 
+  describe('Field-level customization (set / supply / ignore)', () => {
+    it('set() should fix a field to the given value', () => {
+      const user: UserInterface = Instancio.of<UserInterface>().set('email', 'fixed@example.com').generate();
+
+      expect(user.email).toBe('fixed@example.com');
+      // Other fields are still randomly generated
+      expect(typeof user.name).toBe('string');
+      expect(typeof user.age).toBe('number');
+    });
+
+    it('supply() should use the provided supplier function to generate a field', () => {
+      let callCount = 0;
+      const users: UserInterface[] = Instancio.ofArray<UserInterface>(3)
+        .supply('age', () => {
+          callCount++;
+          return 25;
+        })
+        .generateArray();
+
+      expect(callCount).toBe(3);
+      for (const user of users) {
+        expect(user.age).toBe(25);
+        expect(typeof user.name).toBe('string');
+      }
+    });
+
+    it('ignore() should leave the field absent from the generated object', () => {
+      const user: UserInterface = Instancio.of<UserInterface>().ignore('email').generate();
+
+      expect(user.email).toBeUndefined();
+      // Other fields are still generated
+      expect(typeof user.name).toBe('string');
+      expect(typeof user.age).toBe('number');
+    });
+
+    it('set(), supply() and ignore() can be chained together', () => {
+      let supplyCallCount = 0;
+      const user: UserInterface = Instancio.of<UserInterface>()
+        .set('name', 'Alice')
+        .supply('age', () => {
+          supplyCallCount++;
+          return 30;
+        })
+        .ignore('phone')
+        .generate();
+
+      expect(user.name).toBe('Alice');
+      expect(user.age).toBe(30);
+      expect(supplyCallCount).toBe(1);
+      expect(user.phone).toBeUndefined();
+      expect(typeof user.email).toBe('string');
+    });
+  });
+
   it(`Type generation should fill all fields`, () => {
     const userType: UserType = Instancio.of<UserType>().generate();
     console.log(userType);
