@@ -47,25 +47,25 @@ console.log(user);
 To install the library via npm:
 
 ```bash
-npm install instancio-js
+npm install instancio-js ts-patch
+npx ts-patch install
 ```
 
 ### Prerequisites
 
-- Typescript 4.8 - 5.1
-- Node.js v14 or newer (when using Node.js)
-  (see https://github.com/typescript-rtti/typescript-rtti)
+- Typescript 5.0 or newer
+- [ts-patch](https://github.com/nonara/ts-patch)
 
 ### setting up tsconfig.json
 
-DISCLAIMER: You must use a custom transformer in order to make the library work (see https://github.com/typescript-rtti/typescript-rtti).
+DISCLAIMER: You must use a custom transformer in order to make the library work.
 
 ```json
 {
   "compilerOptions": {
     "plugins": [
       {
-        "transform": "typescript-rtti/dist/transformer"
+        "transform": "instancio-js/dist/transformer"
       }
     ]
   }

@@ -1,35 +1,20 @@
-import {
-  ReflectedClassRef,
-  ReflectedEnumRef,
-  ReflectedInterfaceRef,
-  ReflectedIntersectionRef,
-  ReflectedLiteralRef,
-  ReflectedObjectMember,
-  ReflectedProperty,
-  ReflectedTupleRef,
-  ReflectedUnionRef,
-} from 'typescript-rtti';
-import { ReflectedTypeRef } from 'typescript-rtti/src/lib/reflect';
 import { DefaultPrimitiveGenerator } from './generators/default-primitive-generator';
-import { PRIMITIVE_TYPES, PrimitiveTypeEnum } from './primitive-type.enum';
+import { PrimitiveTypeEnum } from './primitive-type.enum';
 import { InstancioPrimitiveGenerator } from './generators/instancio-primitive-generator';
-
-// TODO : Ideas for later
-//  https://www.instancio.org/user-guide/#using-oncomplete
-//  https://www.instancio.org/user-guide/#using-set
+import { PropertySchema, TypeSchema } from './schema';
 
 /**
  * The `InstancioApi` class is responsible for generating instances of a given type `T`.
- * It uses reflection provided by the `typescript-rtti` library to analyze the type
+ * It uses a custom schema extracted at compile-time to analyze the type
  * and dynamically generate values for primitive types or recursively generate complex objects.
  *
  * The class is designed to handle both simple primitive types (e.g., `string`, `number`)
  * as well as complex types such as classes, interfaces, or objects. It does so by inspecting
- * the type and leveraging the `PrimitiveGenerator` for primitive types and recursion for
+ * the schema and leveraging the `PrimitiveGenerator` for primitive types and recursion for
  * more complex types.
  */
 export class InstancioApi<T> {
-  private readonly typeRef: ReflectedTypeRef;
+  private readonly schema: TypeSchema;
   private primitiveGenerator: InstancioPrimitiveGenerator = new DefaultPrimitiveGenerator();
   /**
    * Indicates how many instances will be generated with the `generateArray()` or `generateSet` methods.
@@ -38,14 +23,14 @@ export class InstancioApi<T> {
   private nestedCollectionsSize = Math.round(Math.random() * (5 - 2) + 2); // Two to five random elements by default
 
   /**
-   * Protected constructor to initialize the `InstancioApi` with a type reference.
+   * Protected constructor to initialize the `InstancioApi` with a type schema.
    * This constructor is intended to be used internally by the `Instancio` class.
    *
-   * @param typeRef The `ReflectedTypeRef` representing the type information of `T`.
+   * @param schema The `TypeSchema` representing the type information of `T`.
    * @param rootCollectionSize opt: root collection size in case of multiple obj. generation
    */
-  protected constructor(typeRef: any, rootCollectionSize?: number) {
-    this.typeRef = typeRef as ReflectedTypeRef;
+  protected constructor(schema: any, rootCollectionSize?: number) {
+    this.schema = schema as TypeSchema;
     this.rootCollectionSize = rootCollectionSize ?? 0;
   }
 
@@ -125,84 +110,67 @@ export class InstancioApi<T> {
    * @throws Error if the type cannot be processed.
    *
    */
-  // TODO : Enhance readability + switch case
   public generate(): T {
-    // Handle primitive type (leaf)
-    // @ts-ignore
-    if (this.typeRef.kind === 'class' && PRIMITIVE_TYPES.includes(this.typeRef.class.name)) {
-      // @ts-ignore
-      return this.primitiveGenerator.generatePrimitive(this.typeRef.class.name as PrimitiveTypeEnum);
-      // @ts-ignore
-    } else if (this.typeRef.name === 'Object') {
-      console.warn('Unrecognized type/object: falling back to default generation');
-      return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT);
+    if (!this.schema) {
+      console.warn('No schema provided: falling back to default generation');
+      return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT) as T;
     }
 
-    // Else, keep handling complex properties (branches)
-    if (this.typeRef.kind === 'interface') {
-      const interfaceTypeRef: ReflectedInterfaceRef = this.typeRef as unknown as ReflectedInterfaceRef;
-      return this.processProperties(interfaceTypeRef.reflectedInterface.properties);
-    } else if (this.typeRef.kind === 'class') {
-      // When we are not able at runtime to determine the underlying type and end up with a branch being an 'object'
-      // we kind of have no other choice than to fallback to the default generation => creating a leaf
-      // This behavior can be customized with a customGenerator. overriding DEFAULT type.
-      // @ts-ignore
-      if (this.typeRef.class.name === 'Object') {
-        console.warn('Unrecognized type/object: falling back to default generation');
-        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT);
-      }
-      const classTypeRef: ReflectedClassRef<any> = this.typeRef as unknown as ReflectedClassRef<any>;
-      return this.processProperties(classTypeRef.reflectedClass.properties);
-    } else if (this.typeRef.kind === 'object') {
-      // @ts-ignore
-      const props: ReflectedObjectMember[] = this.typeRef.members;
-      // ReflectedObjectMember has enough overlap with ReflectedProperty to be used within 'processProperties'.
-      return this.processProperties(props as unknown as ReflectedProperty[]);
-    } else if (this.typeRef.kind === 'enum') {
-      // For now, enum generation only consists in picking a random enum value
-      const enumRef: ReflectedEnumRef = this.typeRef as unknown as ReflectedEnumRef;
-      return enumRef.values[Math.floor(Math.random() * enumRef.values.length)].value as T;
-    } else if (this.typeRef.kind === 'union') {
-      const unionRef: ReflectedUnionRef = this.typeRef as unknown as ReflectedUnionRef;
-      // @ts-ignore
-      return new InstancioApi<T>(unionRef.types[Math.floor(Math.random() * unionRef.types.length)])
-        .withCustomGenerator(this.primitiveGenerator)
-        .generate();
-    } else if (this.typeRef.kind === 'intersection') {
-      // TODO
-      const intersectionRef: ReflectedIntersectionRef = this.typeRef as unknown as ReflectedIntersectionRef;
-      throw new Error('Intersection type is not handled yet. Submit a PR if you want to implement it!');
-    } else if (this.typeRef.kind === 'tuple') {
-      return this.processTuple() as T;
-    } else if (this.typeRef.kind === 'null') {
-      return null as T;
-    } else if (this.typeRef.kind === 'undefined') {
-      return undefined as T;
-    } else if (this.typeRef.kind === 'any') {
-      return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Any);
-    } else if (this.typeRef.kind === 'array') {
-      // @ts-ignore
-      const type = this.typeRef.elementType;
-      return new InstancioApi<T>(type as unknown as ReflectedTypeRef, this.nestedCollectionsSize)
-        .withCustomGenerator(this.primitiveGenerator)
-        .generateArray() as T;
-    } else if (this.typeRef.kind === 'literal') {
-      console.warn('Encountered literal type, returning the value as it is');
-      const literalRef: ReflectedLiteralRef = this.typeRef as unknown as ReflectedLiteralRef;
-      return literalRef.value as T;
-    } else {
-      throw new Error(`Cannot handle typeRef.kind=[${this.typeRef.kind}] : Not implemented yet.
-       If you think this is a mistake, please report an issue at (...)`);
+    switch (this.schema.kind) {
+      case 'string':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.String) as T;
+      case 'number':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Number) as T;
+      case 'boolean':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Boolean) as T;
+      case 'bigint':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.BigInt) as T;
+      case 'date':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Date) as T;
+      case 'symbol':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Symbol) as T;
+      case 'any':
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.Any) as T;
+      case 'null':
+        return null as T;
+      case 'undefined':
+        return undefined as T;
+      case 'literal':
+        return this.schema.value as T;
+      case 'enum':
+        if (this.schema.values && this.schema.values.length > 0) {
+          const randomIndex = Math.floor(Math.random() * this.schema.values.length);
+          return this.schema.values[randomIndex].value as T;
+        }
+        return undefined as T;
+      case 'array':
+        return new InstancioApi<T>(this.schema.elementType, this.nestedCollectionsSize)
+          .withCustomGenerator(this.primitiveGenerator)
+          .generateArray() as unknown as T;
+      case 'tuple':
+        return this.processTuple() as T;
+      case 'union':
+        if (this.schema.types && this.schema.types.length > 0) {
+          const randomIndex = Math.floor(Math.random() * this.schema.types.length);
+          return new InstancioApi<T>(this.schema.types[randomIndex]).withCustomGenerator(this.primitiveGenerator).generate();
+        }
+        return undefined as T;
+      case 'object':
+        return this.processProperties(this.schema.properties || []);
+      default:
+        console.warn(`Unrecognized type/object [${this.schema.kind}]: falling back to default generation`);
+        return this.primitiveGenerator.generatePrimitive(PrimitiveTypeEnum.DEFAULT) as T;
     }
   }
 
   private processTuple(): T {
     const value = [];
-    const tupleRef: ReflectedTupleRef = this.typeRef as unknown as ReflectedTupleRef;
-    for (const el of tupleRef.elements) {
-      value.push(new InstancioApi<T>(el.type as unknown as ReflectedTypeRef).generate());
+    if (this.schema.elements) {
+      for (const el of this.schema.elements) {
+        value.push(new InstancioApi<T>(el).withCustomGenerator(this.primitiveGenerator).generate());
+      }
     }
-    return value as T;
+    return value as unknown as T;
   }
 
   /**
@@ -213,13 +181,10 @@ export class InstancioApi<T> {
    * @returns A partially constructed instance of type `T` with generated values for each property.
    * @private
    */
-  private processProperties(props: ReflectedProperty[]) {
-    let result = {};
+  private processProperties(props: PropertySchema[]) {
+    let result: any = {};
     for (const prop of props) {
-      // @ts-ignore
-      result[prop.name] = new InstancioApi<T>(prop.type as unknown as ReflectedTypeRef)
-        .withCustomGenerator(this.primitiveGenerator)
-        .generate();
+      result[prop.name] = new InstancioApi<T>(prop.schema).withCustomGenerator(this.primitiveGenerator).generate();
     }
     return result as T;
   }

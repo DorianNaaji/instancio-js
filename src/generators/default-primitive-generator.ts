@@ -23,7 +23,7 @@ export class DefaultPrimitiveGenerator extends InstancioPrimitiveGenerator {
   private static readonly generators: ReadonlyMap<PrimitiveTypeEnum, Function> = new Map<PrimitiveTypeEnum, Function>()
     .set(PrimitiveTypeEnum.String, DefaultPrimitiveGenerator.defaultStringGenerator)
     .set(PrimitiveTypeEnum.Symbol, () => Symbol(DefaultPrimitiveGenerator.defaultStringGenerator()))
-    .set(PrimitiveTypeEnum.Number, () => Number.parseInt(random(6, 'numeric')))
+    .set(PrimitiveTypeEnum.Number, () => Math.floor(Math.random() * 900000) + 100000)
     .set(PrimitiveTypeEnum.BigInt, () => BigInt(random(12, 'numeric')))
     .set(PrimitiveTypeEnum.Boolean, () => Math.random() < 0.5)
     .set(PrimitiveTypeEnum.Date, () => {
