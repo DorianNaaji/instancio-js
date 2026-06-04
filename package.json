@@ -1,7 +1,7 @@
 {
   "name": "instancio-js",
-  "version": "2.0.1",
-  "description": "Dynamically generate TypeScript/JavaScript objects for testing. Inspired by Instancio",
+  "version": "2.1.0",
+  "description": "Test data generator for TypeScript and JavaScript. Auto-populate objects and interfaces with random values for unit tests. Inspired by Instancio for Java",
   "author": "Dorian Naaji",
   "license": "MIT",
   "repository": {
@@ -12,14 +12,20 @@
     "url": "https://github.com/doriannaaji/instancio-js/issues"
   },
   "keywords": [
-    "random javascript object",
-    "random typescript object",
-    "generate javascript objects",
-    "generate typescript objects",
-    "instancio for javascript",
-    "instancio for typescript",
-    "javascript random object generator",
-    "typescript random object generator"
+    "test-data-generator",
+    "test-fixtures",
+    "mock-data",
+    "fake-data",
+    "faker",
+    "typescript",
+    "javascript",
+    "testing",
+    "unit-test",
+    "random",
+    "object-generation",
+    "interface-generation",
+    "instancio",
+    "instancio-js"
   ],
   "homepage": "https://github.com/doriannaaji/instancio-js#readme",
   "main": "dist/index.js",

@@ -1,16 +1,27 @@
-# instancio-js
+# instancio-js - Test Data Generator for TypeScript & JavaScript
 
-instancio-js is a library for dynamically and recursively generating
-JavaScript/TypeScript objects from interfaces, similar
-to the functionality provided by [Instancio](https://github.com/instancio/instancio) in Java.
-It allows you to quickly create objects with random values for testing purposes.
+instancio-js is a **TypeScript/JavaScript test data generator** that auto-populates objects, interfaces, and classes with random values for unit tests: no manual fixtures, no boilerplate.
+Inspired by [Instancio](https://github.com/instancio/instancio) for Java.
+
+## Why instancio-js?
+
+Tired of writing manual test fixtures? instancio-js generates fully populated TypeScript objects directly from your existing interfaces and classes; no extra schema, no configuration.
+
+|                             | instancio-js | faker.js | Manual fixtures |
+| --------------------------- | ------------ | -------- | --------------- |
+| Reads your TypeScript types | ✅           | ❌       | ❌              |
+| Zero boilerplate            | ✅           | Partial  | ❌              |
+| Nested objects              | ✅           | Manual   | Manual          |
+| Arrays, Sets, Tuples, Enums | ✅           | Manual   | Manual          |
+| Field-level customization   | ✅           | ❌       | ❌              |
 
 ## Key Features
 
-- Random Object Generation: Generate objects based on interfaces/classes with random values.
-- Recursive Generation: Supports generating nested objects and recursive structures.
-- Primitive Value Generators: Default generators for common primitive types like strings, numbers, booleans, dates, etc.
-- Customizable Generation: Easily customize generation rules for specific types.
+- **Test Data Generation**: Generate objects based on interfaces/classes with random values, no manual setup.
+- **Recursive Generation**: Supports generating nested objects and recursive structures automatically.
+- **Field-level Customization**: Fix, supply, or ignore individual fields with `set()`, `supply()`, and `ignore()`.
+- **Primitive Value Generators**: Default generators for strings, numbers, booleans, dates, and more, all customizable.
+- **Collections**: Generate arrays, Sets, and Tuples out of the box.
 
 Example :
 
