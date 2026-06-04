@@ -2,7 +2,7 @@
   "compilerOptions": {
     "plugins": [
       {
-        "transform": "./src/transformer.ts"
+        "transform": "./dist/transformer"
       }
     ],
     "target": "ESNext",
