@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
-    "ignoreDeprecations": "6.0",
+    "plugins": [],
     "rootDir": "src"
   },
   "include": ["src/index.ts", "src/transformer.ts", "src/schema.ts"]
