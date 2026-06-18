@@ -5,5 +5,5 @@
     "plugins": [],
     "rootDir": "src"
   },
-  "include": ["src/index.ts", "src/transformer.ts", "src/schema.ts"]
+  "include": ["src/index.ts", "src/transformer.ts", "src/jest-transformer.ts", "src/schema.ts"]
 }

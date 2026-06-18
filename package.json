@@ -1,6 +1,6 @@
 {
   "name": "instancio-js",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Test data generator for TypeScript and JavaScript. Auto-populate objects and interfaces with random values for unit tests. Inspired by Instancio for Java",
   "author": "Dorian Naaji",
   "license": "MIT",
@@ -36,6 +36,7 @@
     "start": "ts-node -P tsconfig.build.json src/index.ts",
     "build": "tsc --project tsconfig.build.json",
     "test": "vitest",
+    "test:jest": "npm run build && jest",
     "deploy": "npm run build && npm publish",
     "format": "prettier --write ."
   },
@@ -54,9 +55,12 @@
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.2",
+    "@types/jest": "^29.5.14",
     "husky": "^9.1.7",
+    "jest": "^29.7.0",
     "lint-staged": "^15.4.3",
     "prettier": "^3.5.3",
+    "ts-jest": "^29.4.11",
     "ts-node": "^10.9.2",
     "ts-patch": "3.3.0",
     "typescript": "6.0.3",

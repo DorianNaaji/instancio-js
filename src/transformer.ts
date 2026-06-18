@@ -17,6 +17,13 @@ export default function (program: ts.Program) {
 
           if (ts.isIdentifier(obj) && obj.text === 'Instancio') {
             if (method.text === 'of' || method.text === 'ofArray' || method.text === 'ofSet') {
+              // An explicit schema always wins: `of` takes it as the first argument, while
+              // `ofArray`/`ofSet` take it as the second (after the size). When the caller already
+              // provided one (the escape hatch), leave the call untouched and just recurse.
+              const hasExplicitSchema = method.text === 'of' ? node.arguments.length >= 1 : node.arguments.length >= 2;
+              if (hasExplicitSchema) {
+                return ts.visitEachChild(node, visit, context);
+              }
               const typeNode = node.typeArguments?.[0];
               if (typeNode) {
                 const type = checker.getTypeFromTypeNode(typeNode);

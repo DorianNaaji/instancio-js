@@ -67,9 +67,9 @@ npx ts-patch install
 - Typescript 5.0 or newer
 - [ts-patch](https://github.com/nonara/ts-patch)
 
-### setting up tsconfig.json
+### Setup tsconfig.json (TypeScript Compiler Plugin)
 
-DISCLAIMER: You must use a custom transformer in order to make the library work.
+To enable automatic schema generation, add the transformer to your `tsconfig.json`:
 
 ```json
 {
@@ -82,6 +82,62 @@ DISCLAIMER: You must use a custom transformer in order to make the library work.
   }
 }
 ```
+
+### Setup for Jest / nx (ts-jest)
+
+If you're using Jest with `@swc/jest` or `babel-jest` (the default in nx monorepos), these "transpile-only" runners don't compile a full TypeScript `Program`, so the transformer won't run. To fix this, use **ts-jest** instead:
+
+`jest.config.ts` (or `.cts`):
+
+```js
+module.exports = {
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        tsconfig: `${__dirname}/tsconfig.jest.json`,
+        astTransformers: {
+          before: ['instancio-js/dist/jest-transformer'],
+        },
+      },
+    ],
+  },
+};
+```
+
+> **nx users**: nx generates jest projects with `@swc/jest` by default. Replace that project's `transform` with the ts-jest block above. Pointing ts-jest at a tsconfig **path** also avoids static-analysis errors in the `@nx/jest` graph plugin.
+
+### Escape hatch: explicit schema (no transformer at all)
+
+If you cannot use ts-jest (for instance you must stay on `@swc/jest`, esbuild, or a pure runtime with
+no compilation step), describe the type explicitly with the `t` builder and pass the schema as an
+argument. No transformer, no `ts-patch`, no `tsconfig` plugin required:
+
+```typescript
+import { Instancio, t, Infer } from 'instancio-js';
+
+const UserSchema = t.object({
+  name: t.string,
+  age: t.number,
+  active: t.boolean,
+  tags: t.array(t.string),
+  role: t.enum(['admin', 'user', 'guest'] as const),
+});
+
+// Optionally derive the TS type from the schema instead of declaring it twice:
+type User = Infer<typeof UserSchema>;
+
+const user: User = Instancio.of<User>(UserSchema).generate();
+const users: User[] = Instancio.ofArray<User>(5, UserSchema).generateArray();
+```
+
+An explicit schema always takes precedence: even when the transformer is active, a schema you pass by
+hand is used as-is and never overwritten. All `set()`, `supply()`, `ignore()` and
+`withCustomGenerator()` methods work the same way.
+
+The `t` builder exposes: `t.string`, `t.number`, `t.boolean`, `t.bigint`, `t.symbol`, `t.date`,
+`t.any`, `t.unknown`, `t.null`, `t.undefined`, `t.literal(value)`, `t.enum(values)`,
+`t.object({ ... })`, `t.array(schema)`, `t.tuple(...schemas)`, `t.union(...schemas)`.
 
 ### Examples
 
