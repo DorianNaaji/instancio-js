@@ -399,6 +399,13 @@ export interface FewStringsProps {
 }
 ```
 
+## Support
+
+instancio-js is a free, MIT-licensed library built and maintained on my own time. If it saves you from writing test fixtures by hand, you can support it.
+
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-DorianNaaji-EA4AAA?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/DorianNaaji)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/dorian.naaji)
+
 ## License
 
 instancio-js is distributed under the MIT license.
