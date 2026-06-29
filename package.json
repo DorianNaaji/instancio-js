@@ -1,6 +1,6 @@
 {
   "name": "instancio-js",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Test data generator for TypeScript and JavaScript. Auto-populate objects and interfaces with random values for unit tests. Inspired by Instancio for Java",
   "author": "Dorian Naaji",
   "license": "MIT",

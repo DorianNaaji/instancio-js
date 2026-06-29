@@ -107,6 +107,50 @@ module.exports = {
 
 > **nx users**: nx generates jest projects with `@swc/jest` by default. Replace that project's `transform` with the ts-jest block above. Pointing ts-jest at a tsconfig **path** also avoids static-analysis errors in the `@nx/jest` graph plugin.
 
+#### Angular (and other ESM-only packages)
+
+The transformer needs the full `Program`, so `isolatedModules` must be `false`. But with `isolatedModules: false` ts-jest type-checks the whole program, and Angular 16+ ships ESM-only packages whose `exports` map has no `require` condition. Under a CommonJS test config TypeScript then cannot statically resolve sub-path imports such as `@angular/core/testing` or `@angular/common/http`, and reports `TS2307: Cannot find module ...` (or `TS1479` with `node16`/`nodenext` resolution).
+
+These are type-resolution diagnostics only. The transformer itself just needs to resolve **your own** types in `Instancio.of<T>()`; Angular modules are resolved at runtime by jest's `moduleNameMapper` (set up by `jest-preset-angular`), not by TypeScript. So the fix is to tell ts-jest to ignore those diagnostics, **without changing `module` / `moduleResolution`**:
+
+```js
+// jest.config.ts (per Angular lib) - options are forwarded to ts-jest by jest-preset-angular
+module.exports = {
+  preset: '../../jest.preset.js',
+  transform: {
+    '^.+\\.(ts|mjs|js|html)$': [
+      'jest-preset-angular',
+      {
+        tsconfig: '<rootDir>/tsconfig.spec.json',
+        stringifyContentPathRegex: '\\.(html|svg)$',
+        isolatedModules: false,
+        // 2307: cannot find module (node10) - 1479: ESM imported from CJS (node16/nodenext)
+        // 151002: ts-jest "hybrid module kind" warning (node16/nodenext)
+        diagnostics: { ignoreCodes: [2307, 1479, 151002] },
+        astTransformers: { before: ['instancio-js/dist/jest-transformer'] },
+      },
+    ],
+  },
+};
+```
+
+`tsconfig.spec.json` only needs `isolatedModules: false` added; keep the nx-generated `module` / `moduleResolution` as they are:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "isolatedModules": false,
+    "types": ["jest", "node"]
+  }
+}
+```
+
+> This approach is **Node-version independent**: it does not rely on `require(esm)` (Node 22+) and works with any `moduleResolution` the project already uses. The trade-off is that suppressing `TS2307`/`TS1479` also hides genuine "module not found" mistakes in test files; keep type-checking those imports in your editor and `build`. If you prefer zero diagnostics suppression, use the explicit-schema escape hatch below.
+
+A complete runnable workspace (nx + Angular 22 + `jest-preset-angular`, run with `nx test`) lives in `instancio-js-examples/instancio-js-nx-angular`.
+
 ### Escape hatch: explicit schema (no transformer at all)
 
 If you cannot use ts-jest (for instance you must stay on `@swc/jest`, esbuild, or a pure runtime with
