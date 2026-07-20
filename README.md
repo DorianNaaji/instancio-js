@@ -151,6 +151,64 @@ module.exports = {
 
 A complete runnable workspace (nx + Angular 22 + `jest-preset-angular`, run with `nx test`) lives in `instancio-js-examples/instancio-js-nx-angular`.
 
+### Setup for Vite / Vitest (Angular, React, Vue)
+
+Vite-based stacks compile TypeScript with esbuild or a framework compiler (e.g.
+`@analogjs/vite-plugin-angular`), **not** with `tsc`. The `tsconfig` `plugins` transformer is a
+`tsc`/`ts-patch`-only mechanism, so it never runs there: `Instancio.of<T>()` reaches the runtime with
+no schema and falls back to primitive defaults (`No schema provided: falling back to default
+generation`). This affects modern Angular projects that test with Vitest, as well as React and Vue on
+Vitest.
+
+instancio-js ships an official Vite plugin that closes this gap. You keep writing the exact same
+zero-boilerplate API - `Instancio.of<T>().generate()` - the plugin resolves `T` against a real
+TypeScript program and injects the schema before the framework compiler runs. No `ts-patch`, no
+`tsconfig` `plugins` entry.
+
+```typescript
+// vitest.config.ts (or vite.config.ts)
+import { defineConfig } from 'vitest/config';
+import angular from '@analogjs/vite-plugin-angular';
+import { instancio } from 'instancio-js/dist/vite';
+
+export default defineConfig({
+  // instancio() must run before the Angular compiler; it already declares enforce: 'pre'.
+  plugins: [instancio({ tsconfig: './tsconfig.spec.json' }), angular()],
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+  },
+});
+```
+
+Remove any `plugins: [{ "transform": "instancio-js/dist/transformer" }]` block from your
+`tsconfig.spec.json`: it does nothing under Vite and the plugin above replaces it.
+
+For React or Vue, the setup is identical - list `instancio()` alongside your framework plugin, there
+is nothing Angular-specific about it:
+
+```typescript
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import { instancio } from 'instancio-js/dist/vite';
+
+export default defineConfig({
+  plugins: [instancio(), react()],
+  test: { environment: 'happy-dom' },
+});
+```
+
+**Plugin options**
+
+| Option     | Default                 | Description                                                                                                         |
+| ---------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `tsconfig` | nearest `tsconfig.json` | Config used to build the type-checking program. Point it at your test tsconfig so it sees the same files and types. |
+| `include`  | `/\.[cm]?tsx?$/`        | Which module ids the plugin rewrites.                                                                               |
+
+Runnable workspaces live in `instancio-js-examples/instancio-js-angular-vitest` (minimal Vite +
+Vitest + `@analogjs/vite-plugin-angular`) and `instancio-js-examples/instancio-js-nx-angular-vitest`
+(full nx + Angular 22 + Vitest).
+
 ### Escape hatch: explicit schema (no transformer at all)
 
 If you cannot use ts-jest (for instance you must stay on `@swc/jest`, esbuild, or a pure runtime with
@@ -195,6 +253,12 @@ Repo contains examples:
 - jest
 - mocha
 - tape
+
+**for frameworks:**
+
+- nx + Angular 22 (jest)
+- Angular + Vitest (`@analogjs/vite-plugin-angular`)
+- nx + Angular 22 + Vitest
 
 **for build libs:**
 

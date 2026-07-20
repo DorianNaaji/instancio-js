@@ -3,7 +3,8 @@
   "compilerOptions": {
     "module": "CommonJS",
     "plugins": [],
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": ["node"]
   },
-  "include": ["src/index.ts", "src/transformer.ts", "src/jest-transformer.ts", "src/schema.ts"]
+  "include": ["src/index.ts", "src/transformer.ts", "src/jest-transformer.ts", "src/vite.ts", "src/schema.ts"]
 }

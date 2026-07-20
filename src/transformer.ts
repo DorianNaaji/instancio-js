@@ -51,7 +51,7 @@ export default function (program: ts.Program) {
   };
 }
 
-function serializeType(type: ts.Type, checker: ts.TypeChecker, seen: Set<ts.Type> = new Set()): any {
+export function serializeType(type: ts.Type, checker: ts.TypeChecker, seen: Set<ts.Type> = new Set()): any {
   if (seen.has(type)) {
     return { kind: 'any', name: 'RecursiveReference' };
   }
